@@ -42,10 +42,10 @@ function printInitHelp(cmd, ccmd) {
     if (ccmd) {
         util.printCmdTitle(ccmd);
     }
-    log.print('说明: 初始化项目');
+    print.out('说明: 初始化项目');
     util.printCmdHelp(cmd);
-    log.print('例子:');
-    log.print('   grn init');
+    print.out('例子:');
+    print.out('   grn init');
 }
 
 
@@ -59,19 +59,19 @@ module.exports = {
             name: 'help',
             type: 'options',
             command: '-h, --help',
-            description: '帮助说明'
-        }
+            description: '帮助说明',
+        },
     },
     $options: {
-        'h': {
-            action: function(cmd, args) {
+        h: {
+            action: (cmd) => {
                 printInitHelp(cmd, 'init');
-            }
+            },
         },
-        'help': {
-            action: function(cmd, args) {
+        help: {
+            action: (cmd) => {
                 printInitHelp(cmd, 'init');
-            }
-        }
-    }
+            },
+        },
+    },
 };

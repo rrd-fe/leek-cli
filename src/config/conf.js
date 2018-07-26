@@ -16,7 +16,7 @@ const cons = {
 
 const text = {
     description: `${cons.projectShowName} 为leek项目提供快捷易用的命令`,
-    usageTitle: `Usage: ${cons.commandName} <{cmd}>[命令] [选项]`,
+    usageTitle: `Usage: ${cons.commandName} <{ccmd}>[命令] [选项]`,
     commanTitle: '命令:',
     optionsTitle: '选项:',
     currentVersion: '当前版本: ',
