@@ -15,55 +15,62 @@
 // 5.如果子命令包含多个参数，并且多个参数有多个处理则一次处理，子命令处理忽略
 
 const util = require('./utils/util');
-
-import { red as redLog } from './utils/print';
+const print = require('./utils/print');
 
 const rootCommand = require('./commands/');
 const conf = require('./config/conf');
 
 
+function execCmd(opt, rootCmd, args, cmdHooks) {
+    if (cmdHooks && cmdHooks.before) {
+        // 使用shell 执行命令
+        // cmdHooks.before(cmd,args);
+        // 文件复制到临时目录，并且替换新的命令，设置指定的工作目录，然后启动命令
+        util.execCmd(cmdHooks.before);
+        // shelljs.exec(cmdHooks.before);
+    }
+    opt.action(rootCmd, args);
+    if (cmdHooks && cmdHooks.after) {
+        // cmdHooks.before(cmd,args);
+        // shelljs.exec(cmdHooks.after);
+        util.execCmd(cmdHooks.after);
+    }
+}
+
 function prcessOptions(cmd, args, cmdHooks) {
+    // print.info(cmd);
     let isOptActionCalled = false;
     Object.keys(args).forEach((v) => {
         if (v === '_') {
             return;
         }
         // var opt = cmd.$options && cmd.$options[v];
+        // 找出当前匹配的命令
         const opt = util.matchOpt(cmd, v.toString());
         if (opt && opt.action) {
-            if (cmdHooks && cmdHooks.before) {
-                // 使用shell 执行命令
-                // cmdHooks.before(cmd,args);
-                // 文件复制到临时目录，并且替换新的命令，设置指定的工作目录，然后启动命令
-                util.execCmd(cmdHooks.before);
-                // shelljs.exec(cmdHooks.before);
-            }
-            opt.action(cmd, args);
-            if (cmdHooks && cmdHooks.after) {
-                // cmdHooks.before(cmd,args);
-                // shelljs.exec(cmdHooks.after);
-                util.execCmd(cmdHooks.after);
-            }
+            // 执行命令
+            execCmd(opt, cmd, args, cmdHooks);
+            // if (cmdHooks && cmdHooks.before) {
+            //     // 使用shell 执行命令
+            //     // cmdHooks.before(cmd,args);
+            //     // 文件复制到临时目录，并且替换新的命令，设置指定的工作目录，然后启动命令
+            //     util.execCmd(cmdHooks.before);
+            //     // shelljs.exec(cmdHooks.before);
+            // }
+            // opt.action(cmd, args);
+            // if (cmdHooks && cmdHooks.after) {
+            //     // cmdHooks.before(cmd,args);
+            //     // shelljs.exec(cmdHooks.after);
+            //     util.execCmd(cmdHooks.after);
+            // }
             isOptActionCalled = true;
         }
     });
 
-    // 如果没有执行命令 重新调用一边
+    // 如果没有执行命令 重新调用一边, 对于没有子命令的情况下
     if (!isOptActionCalled) {
-        if (cmdHooks && cmdHooks.before) {
-            // 使用shell 执行命令
-            // cmdHooks.before(cmd,args);
-            // shelljs.exec(cmdHooks.before);
-            util.execCmd(cmdHooks.before);
-        }
-        if (cmd.action) {
-            cmd.action(cmd, args);
-        }
-        if (cmdHooks && cmdHooks.after) {
-            // cmdHooks.before(cmd,args);
-            // shelljs.exec(cmdHooks.after);
-            util.execCmd(cmdHooks.after);
-        }
+        // 当前命令就是 跟命令
+        execCmd(cmd, cmd, args, cmdHooks);
     }
 }
 
@@ -92,7 +99,7 @@ function processCommand(args) {
             subCmd = subCmd.commands[v];
         } else {
             isCmdVerifyed = false;
-            redLog(conf.text.cmdNotReg + v);
+            print.red(conf.text.cmdNotReg + v);
         }
     });
 

@@ -7,31 +7,32 @@
 * @Last modified time: 2017-03-31
 */
 
+
 const helpUtil = require('../../utils/help');
 const print = require('../../utils/print');
+const Option = require('../../base/Option');
 
-module.exports = {
+function printHelpInfo() {
+    helpUtil.printCliHeader();
+}
+
+const helpCmd = new Option({
     name: 'help',
-    type: 'options',
     command: '-h, --help',
     description: '帮助说明',
-    printHelpInfo: helpUtil.printCliHeader,
     actions: {
-        h: {
+        'h;help': {
             action: (cmd) => {
-                // print.info(cmd.action);
+                print.info(cmd.action);
                 if (cmd.action) {
                     cmd.action();
                 }
                 // cmd.action && cmd.action();
             },
         },
-        help: {
-            action: (cmd) => {
-                if (cmd.action) {
-                    cmd.action();
-                }
-            },
-        },
     },
-};
+});
+
+helpCmd.printHelpInfo = printHelpInfo;
+
+module.exports = helpCmd;

@@ -6,6 +6,6 @@
 @echo off
 title grape rn cli
 :: node "%~dp0..\local-cli\cli.js" start
-${cmd}
+<{cmds}>
 pause
 exit

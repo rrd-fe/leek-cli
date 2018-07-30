@@ -6,11 +6,13 @@
  * @Last modified by:   rrd
  * @Last modified time: 2017-03-31
  */
-import print from '../../utils/print';
-import conf from '../../config/conf';
+
 import util from '../../utils/util';
 
 import shelljs from 'shelljs';
+
+const conf = require('../../config/conf');
+const print = require('../../utils/print');
 
 //初始化项目
 function initProject(cmd, args) {

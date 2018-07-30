@@ -51,33 +51,16 @@ function checkProjectPkg() {
         return false;
     }
     try {
-        let pkg = fs.readFileSync(packagePath);
-        let pkgJSON = JSON.parse(pkg);
+        const pkg = fs.readFileSync(packagePath);
+        const pkgJSON = JSON.parse(pkg);
         if (pkgJSON.dependencies && pkgJSON.dependencies['react-native']) {
-            print.out('当前使用的RN版本: ' + pkgJSON.dependencies['react-native']);
+            print.out(`当前使用的RN版本: ${pkgJSON.dependencies['react-native']}`);
         } else {
             print.red('读取RN版本失败');
             return false;
         }
     } catch (e) {
         print.red('package.json 文件解析错误！');
-        return false;
-    }
-    return true;
-}
-
-// 检查rn cli 是否安装
-function checkRNC() {
-    try {
-        shelljs.config.silent = true;
-        const res = shelljs.exec('react-native -v');
-        shelljs.config.silent = false;
-        if (res.code !== 0) {
-            print.red('react native cli 没有安装');
-            return false;
-        }
-    } catch (e) {
-        print.red('react native cli 没有安装');
         return false;
     }
     return true;
@@ -92,7 +75,6 @@ function checkProjectEnv() {
         print.red('react native 模块没有安装');
         return false;
     }
-    checkRNC();
     return true;
 }
 
@@ -168,6 +150,7 @@ function getUsageInfo(cmd, ccmd) {
     if (ccmd) {
         infos.push(conf.text.usageTitle.replace('<{ccmd}>', ccmd));
     }
+
     if (rootCommand.commands) {
         infos.push(conf.text.commanTitle);
         Object.keys(rootCommand.commands).forEach((v) => {
@@ -196,7 +179,7 @@ function printCmdHelp(cmd) {
 function printCmdTitle(cmdName) {
     let cName = '';
     if (cmdName) {
-        cName = `${cmdName}' '`;
+        cName = `${cmdName} `;
     }
     print.out(conf.text.usageTitle.replace('<{ccmd}>', cName));
 }
@@ -324,7 +307,7 @@ function execCmd(cmdStr) {
     const currenWork = process.cwd();
 
     const newCmdStr = `cd ${currenWork}\n${cmdStr}`;
-    const newCmds = cmd.replace('${cmd}', newCmdStr);
+    const newCmds = cmd.replace('<{cmds}>', newCmdStr);
     try {
         const stat = fs.statSync(newCmdFile);
         if (stat.isFile()) {
@@ -345,6 +328,23 @@ function execCmd(cmdStr) {
     startServerInNewWindow(newCmdFile);
 }
 
+// 对命令行做排序
+function sortCmd(sourceCmd) {
+    const sortedCmds = {};
+    Object.keys(sourceCmd).sort().forEach((v) => {
+        sortedCmds[v] = sourceCmd[v];
+    });
+    return sortedCmds;
+}
+
+function getNpmVersion() {
+    return shelljs.exec('npm -v', { silent: true });
+}
+
+function getYarnVersion() {
+    return shelljs.exec('yarn -v', { silent: true });
+}
+
 module.exports = {
     checkProjectEnv,
     getGRNConfig,
@@ -356,7 +356,6 @@ module.exports = {
     printCmdTitle,
     startDebugServer,
     checkProjectPkg,
-    checkRNC,
     matchOpt,
     getIpAddr,
     getPckageInfo,
@@ -364,4 +363,7 @@ module.exports = {
     mkTempDir,
     matchHook,
     startServerInNewWindow,
+    sortCmd,
+    getNpmVersion,
+    getYarnVersion,
 };

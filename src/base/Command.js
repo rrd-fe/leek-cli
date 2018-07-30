@@ -7,10 +7,11 @@
  * @Last modified time: 2017-04-17
  */
 
+/* eslint no-underscore-dangle: [2, { "allowAfterThis": true }] */
+
 import Option from './Option';
 import print from '../utils/print';
 import util from '../utils/util';
-
 
 class Command {
     constructor(cmd, cmds, options) {
@@ -44,7 +45,7 @@ class Command {
             this.addName(cmd.name);
         }
         if (cmd.description) {
-            this.addDescription(cmd.description)
+            this.addDescription(cmd.description);
         }
         if (cmd.action) {
             this.addAction(cmd.action);
@@ -55,24 +56,23 @@ class Command {
     }
 
     initHelpOpt() {
-        let that = this;
-        let helpOpt = new Option({
+        const helpOpt = new Option({
             name: 'help',
             command: '-h, --help',
             description: '帮助说明',
-            action: this.printHelp
+            action: this.printHelp,
         });
 
         this._mixOptions({
-            help: helpOpt
+            help: helpOpt,
         });
 
         this.addOptionAction('h', (cmd, args) => {
-            that.printHelp(cmd, args);
+            this.printHelp(cmd, args);
         });
 
         this.addOptionAction('help', (cmd, args) => {
-            that.printHelp(cmd, args);
+            this.printHelp(cmd, args);
         });
     }
 
@@ -80,7 +80,7 @@ class Command {
         if (!cmds) {
             return;
         }
-        Object.keys(cmds).forEach((v, i) => {
+        Object.keys(cmds).forEach((v) => {
             if (!this.commands[v] && cmds[v] instanceof Command) {
                 this.commands[v] = cmds[v];
             }
@@ -91,7 +91,7 @@ class Command {
         if (!opts) {
             return;
         }
-        Object.keys(opts).forEach((v, i) => {
+        Object.keys(opts).forEach((v) => {
             if (!this.options[v] && opts[v] instanceof Option) {
                 this.options[v] = opts[v];
             }
@@ -99,9 +99,9 @@ class Command {
     }
 
     moveHelpOptToLast() {
-        let prevHelp = this.options['help'];
-        delete this.options['help'];
-        this.options['help'] = prevHelp;
+        const prevHelp = this.options.help;
+        delete this.options.help;
+        this.options.help = prevHelp;
     }
 
     printHelp(cmd, args) {
@@ -113,7 +113,7 @@ class Command {
             util.printCmdTitle(ccmd);
         }
         if (this.helpSpec) {
-            print.out('说明: ' + this.helpSpec);
+            print.out(`说明: ${this.helpSpec}`);
         }
         util.printCmdHelp(cmd);
         if (this.helpExample) {
@@ -159,19 +159,17 @@ class Command {
         if (!opts) {
             return;
         }
-        let that = this;
-        Object.keys(opts).forEach((v, i) => {
+        const that = this;
+        Object.keys(opts).forEach((v) => {
             if (opts[v] instanceof Option) {
                 that.addOption(v, opts[v]);
             } else {
                 this.addOption(v, new Option(opts[v]));
             }
-            let actions = opts[v].actions;
-            if (actions) {
-                Object.keys(actions).forEach((va, k) => {
-                    that.addOptionAction(va, actions[va].action);
-                });
-            }
+            const actions = opts[v].actions ? opts[v].actions : {};
+            Object.keys(actions).forEach((va) => {
+                that.addOptionAction(va, actions[va].action);
+            });
         });
         this.moveHelpOptToLast();
     }
@@ -180,9 +178,8 @@ class Command {
         if (!cmds) {
             return;
         }
-        let that = this;
-        Object.keys(cmds).forEach((v, i) => {
-            that.addSubCmd(cmds[v]);
+        Object.keys(cmds).forEach((v) => {
+            this.addSubCmd(cmds[v]);
         });
     }
 

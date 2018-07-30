@@ -9,29 +9,14 @@
 
 
 const Command = require('../base/Command');
-
-const init = require('./init');
-const whoami = require('./whoami');
-
-const server = require('./server');
-
 const help = require('./help');
 const version = require('./version');
-
 const print = require('../utils/print');
 const util = require('../utils/util');
 
-const commands = {
-    init,
-    whoami,
-    server,
-};
+const commands = require('../index');
 
-const sortedCmds = {};
-
-Object.keys(commands).sort().forEach((v) => {
-    sortedCmds[v] = commands[v];
-});
+const sortedCmds = util.sortCmd(commands);
 
 const rootCommand = new Command({
     action: () => {

@@ -7,7 +7,7 @@
  * @Last modified time: 2017-04-17
  */
 
-export default class Option {
+class Option {
     constructor(opt) {
         if (!opt) {
             return;
@@ -51,3 +51,5 @@ export default class Option {
         this.command = cmd;
     }
 }
+
+module.exports = Option;

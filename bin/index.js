@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-
 const argv = require('minimist')(process.argv.slice(2));
 const cli = require('../src/cli');
 const print = require('../src/utils/print');
