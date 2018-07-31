@@ -86,10 +86,10 @@ function processCommand(args) {
     }
 
     let subCmd = rootCommand;
-    const packages = util.getPckageInfo();
     let cmdHooks = {};
-    if (packages && packages.grnConfig && packages.grnConfig.commands) {
-        cmdHooks = packages.grnConfig.commands;
+    const packages = util.getPckageInfo();
+    if (packages && packages.leekConfig && packages.leekConfig.commands) {
+        cmdHooks = packages.leekConfig.commands;
     }
     subCommands.forEach((v) => {
         if (cmdHooks && cmdHooks[v]) {

@@ -12,9 +12,12 @@ const os = require('os');
 const fs = require('graceful-fs');
 const pad = require('pad');
 const shelljs = require('shelljs');
+const { Spinner } = require('cli-spinner');
 
 const conf = require('../config/conf');
 const print = require('./print');
+
+let gloSpinner = null;
 
 const pwd = process.cwd();
 
@@ -24,55 +27,38 @@ const tmpDir = `${process.env.HOME}/.grnTemp/`;
 function getPckageInfo() {
     const packagePath = path.join(pwd, '/package.json');
     if (!fs.existsSync(packagePath)) {
-        print.red('package.json文件不存在，请在项目根目录下运行');
+        // print.red('package.json文件不存在，请在项目根目录下运行');
         return false;
     }
-
     try {
         const pkg = fs.readFileSync(packagePath);
         return JSON.parse(pkg);
     } catch (e) {
-        print.red(e);
-        print.red('package.json 文件解析错误！');
-        return false;
+        print.red(conf.text.pkgParseError);
+        throw e;
     }
 }
 
 // 检查当前目录是否是项目所在目录
-// 判断标准：
-// 1.是否包含package.json文件
-// 2.react-native模块是否安装
-// 3.
 
 function checkProjectPkg() {
     const packagePath = path.join(pwd, '/package.json');
     if (!fs.existsSync(packagePath)) {
-        print.red('package.json文件不存在，请在项目根目录下运行');
+        print.red(conf.text.pkgNotExist);
         return false;
     }
     try {
         const pkg = fs.readFileSync(packagePath);
         const pkgJSON = JSON.parse(pkg);
-        if (pkgJSON.dependencies && pkgJSON.dependencies['react-native']) {
-            print.out(`当前使用的RN版本: ${pkgJSON.dependencies['react-native']}`);
-        } else {
-            print.red('读取RN版本失败');
-            return false;
-        }
+        return pkgJSON;
     } catch (e) {
-        print.red('package.json 文件解析错误！');
-        return false;
+        print.red(conf.text.pkgParseError);
+        throw e;
     }
-    return true;
 }
 
 function checkProjectEnv() {
     if (!checkProjectPkg()) {
-        return false;
-    }
-    const cliPath = path.join(pwd, '/node_modules/react-native/local-cli/cli.js');
-    if (!fs.existsSync(cliPath)) {
-        print.red('react native 模块没有安装');
         return false;
     }
     return true;
@@ -345,6 +331,23 @@ function getYarnVersion() {
     return shelljs.exec('yarn -v', { silent: true });
 }
 
+function startLoading(info) {
+    if (gloSpinner) {
+        gloSpinner.start();
+        return;
+    }
+    gloSpinner = new Spinner(`${info} --> %s <-- `);
+    gloSpinner.setSpinnerString(18);
+    gloSpinner.start();
+}
+
+function stopLoading(info) {
+    if (gloSpinner) {
+        gloSpinner.stop();
+    }
+    print.out(info);
+}
+
 module.exports = {
     checkProjectEnv,
     getGRNConfig,
@@ -366,4 +369,6 @@ module.exports = {
     sortCmd,
     getNpmVersion,
     getYarnVersion,
+    startLoading,
+    stopLoading,
 };

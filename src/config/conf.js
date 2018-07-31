@@ -21,6 +21,8 @@ const text = {
     optionsTitle: '选项:',
     currentVersion: '当前版本: ',
     cmdNotReg: '命令未注册:',
+    pkgNotExist: 'package.json文件不存在，请在项目根目录下运行',
+    pkgParseError: 'package.json 文件解析错误！',
 };
 
 const logo = {

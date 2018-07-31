@@ -13,7 +13,6 @@ const help = require('./help');
 const version = require('./version');
 const print = require('../utils/print');
 const util = require('../utils/util');
-
 const commands = require('../index');
 
 const sortedCmds = util.sortCmd(commands);
