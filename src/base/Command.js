@@ -152,6 +152,25 @@ class Command {
         this._mixOptions({
             [name]: opt,
         });
+        if (opt.action) {
+            this.addOptionAction(name, (cmd, args) => {
+                opt.action(cmd, args);
+            });
+        }
+        if (opt.actions) {
+            Object.keys(opt.actions).forEach((v) => {
+                if (!v) {
+                    return;
+                }
+                v.split(';').forEach((sv) => {
+                    if (sv) {
+                        this.addOptionAction(sv, (...args) => {
+                            opt.actions[v](...args);
+                        });
+                    }
+                });
+            });
+        }
         this.moveHelpOptToLast();
     }
 
@@ -166,10 +185,6 @@ class Command {
             } else {
                 this.addOption(v, new Option(opts[v]));
             }
-            const actions = opts[v].actions ? opts[v].actions : {};
-            Object.keys(actions).forEach((va) => {
-                that.addOptionAction(va, actions[va].action);
-            });
         });
         this.moveHelpOptToLast();
     }

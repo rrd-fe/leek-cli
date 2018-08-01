@@ -12,7 +12,7 @@ class Option {
         if (!opt) {
             return;
         }
-        this.action = () => {};
+        this.action = opt.action;
         this.name = '';
         this.description = '';
         this.command = ''; // 支持的参数
