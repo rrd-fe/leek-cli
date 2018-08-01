@@ -95,9 +95,14 @@ function mkTempDir(dirName) {
     }
 }
 
-// grn检查配置文件是否存在，如果不存在则直接打包
-function getGRNConfig(callback) {
-    const confPath = path.join(pwd, conf.cons.configFileName);
+// 获取配置文件路径
+function getConfigPath() {
+    return path.join(pwd, conf.cons.configFileName);
+}
+
+// 获取配置文件
+function getProjectConfig(callback) {
+    const confPath = getConfigPath();
     fs.readFile(confPath, (err, data) => {
         if (err) {
             print.red(`读取配置文件失败: ${confPath}`);
@@ -114,6 +119,7 @@ function getGRNConfig(callback) {
         }
     });
 }
+
 
 // 填充空白字符
 function piddingReset(str, len) {
@@ -176,22 +182,7 @@ function startDebugServer() {
     if (!checkProjectEnv()) {
         return;
     }
-    // 检查配置文件
-    getGRNConfig((confData) => {
-        if (!confData) {
-            print.red('grn 配置文件不存在');
-            return;
-        }
-        // 开启服务
-        const startCmd = 'node node_modules/react-native/local-cli/cli.js start';
-        try {
-            shelljs.config.silent = false;
-            shelljs.exec(startCmd);
-        } catch (e) {
-            print.red(e);
-            print.red('启动服务失败');
-        }
-    });
+   
 }
 
 // 获取本机的ip地址
@@ -350,7 +341,8 @@ function stopLoading(info) {
 
 module.exports = {
     checkProjectEnv,
-    getGRNConfig,
+    getConfigPath,
+    getProjectConfig,
     getTimesp: currRunTimesp,
     getTempDirs,
     getUsageInfo,

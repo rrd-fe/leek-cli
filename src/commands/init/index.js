@@ -8,6 +8,8 @@
  */
 
 const inquirer = require('inquirer');
+const fse = require('fs-extra');
+const path = require('path');
 
 const Command = require('../../base/Command');
 const conf = require('../../config/conf');
@@ -71,7 +73,7 @@ function askQuestion(v) {
 const questionList = [
     {
         name: 'projectType',
-        message: '项目类型?',
+        message: '项目类型 (当前版本仅支持react)',
         type: 'list',
         default: 0,
         choices: ['react', 'vue', 'raw'],
@@ -79,7 +81,7 @@ const questionList = [
     {
         name: 'prefix',
         message: '项目访问前缀:',
-        default: 'empty string',
+        default: '',
     },
     {
         name: 'publicPath',
@@ -89,7 +91,7 @@ const questionList = [
     {
         name: 'dist',
         message: '项目打包输出地址:',
-        default: '{server}/../../dist',
+        default: '../../dist',
     },
     {
         name: 'clientAlias',
@@ -102,6 +104,11 @@ const questionList = [
         type: 'list',
         default: 1,
         choices: ['true', 'false'],
+    },
+    {
+        name: 'leekCustomConfigDir',
+        message: 'leek自定义配置webpack目录',
+        default: './leekCustonConfig/',
     },
     {
         name: 'leekManifsetDir',
@@ -123,6 +130,32 @@ function eachQuestion(questions, callback) {
     return prom;
 }
 
+function initDir(distPath) {
+    if (fse.existsSync(distPath)) {
+        fse.emptyDirSync(distPath);
+    } else {
+        fse.mkdirpSync(distPath);
+    }
+}
+
+// 当前运行的目录
+function isInitToServer(gloConfig) {
+    // 读取当前运行的所有目录，如果包含clientAlias 则运行在server 中 否则运行在 client中 目前仅支持 这两种情况
+    // 对于client 如果包含 client 目录的情况，不符合当前的规定，运行则出现异常
+
+    // 检查当前运行环境，是在client 还是 在server
+    const dirs = fse.readdirSync(path.resolve(process.cwd()));
+    let isServer = false;
+    dirs.forEach((v) => {
+        if (v) {
+            const vdirs = v.split(path.sep);
+            if (vdirs[vdirs.length - 1].indexOf(gloConfig.clientAlias) >= 0) {
+                isServer = true;
+            }
+        }
+    });
+    return isServer;
+}
 
 const initCmd = new Command({
     name: 'init',
@@ -132,21 +165,54 @@ const initCmd = new Command({
         if (!util.checkProjectEnv()) {
             return;
         }
+        const confPath = util.getConfigPath();
         print.info(`初始化${conf.cons.commandName}项目`);
+        if (fse.existsSync(confPath)) {
+            print.red(conf.text.init.confExists);
+            return;
+        }
         let gloConfig = {};
         eachQuestion(questionList, (res) => {
             gloConfig = Object.assign({}, gloConfig, res);
         }).then((res) => {
             gloConfig = Object.assign({}, gloConfig, res);
-            print.out('配置完成', gloConfig);
-            util.startLoading('开始生成配置文件');
-            // 写入配置文件
+            // print.out('配置完成', gloConfig);
+            util.startLoading(conf.text.init.startGenConf);
 
+            const distPath = path.resolve(process.cwd(), gloConfig.dist);
+            const leekCustomConfigDir = path.resolve(process.cwd(), gloConfig.leekCustomConfigDir);
+            const leekManifsetDir = path.resolve(process.cwd(), gloConfig.leekManifsetDir);
+
+            try {
+                if (isInitToServer(gloConfig)) {
+                    gloConfig.configIn = 'server';
+                } else {
+                    gloConfig.configIn = 'client';
+                }
+                const confContent = `module.exports = ${JSON.stringify(gloConfig, null, 4)}`;
+
+                // 写入配置文件
+                fse.writeFileSync(confPath, confContent, { encoding: 'utf8' });
+
+                // 清空并初始化dist
+                initDir(distPath);
+
+                // 创建自定义配置文件目录
+                initDir(leekCustomConfigDir);
+
+                // 创建自定义manifest 目录
+                initDir(leekManifsetDir);
+            } catch (e) {
+                print.out(conf.text.init.confFailed);
+                print.red(e);
+            }
             // 创建对应的目录
-
-            setTimeout(() => {
-                util.stopLoading('配置文件生成完成');
-            }, 10000);
+            util.stopLoading(conf.text.init.endGenConf);
+            if (gloConfig.configIn === 'server') {
+                print.out('当前配置初始化在server目录');
+            } else {
+                print.out('当前配置初始化在client目录');
+            }
         });
     },
 });

@@ -23,6 +23,12 @@ const text = {
     cmdNotReg: '命令未注册:',
     pkgNotExist: 'package.json文件不存在，请在项目根目录下运行',
     pkgParseError: 'package.json 文件解析错误！',
+    init: {
+        startGenConf: '开始生成配置文件',
+        endGenConf: '配置文件生成完成',
+        confExists: '配置文件已经被创建了',
+        confFailed: '配置文件生成失败',
+    },
 };
 
 const logo = {
