@@ -96,7 +96,10 @@ function mkTempDir(dirName) {
 }
 
 // 获取配置文件路径
-function getConfigPath() {
+function getConfigPath(dir) {
+    if (dir) {
+        return path.join(pwd, dir, conf.cons.configFileName);
+    }
     return path.join(pwd, conf.cons.configFileName);
 }
 

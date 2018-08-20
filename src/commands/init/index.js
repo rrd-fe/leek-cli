@@ -106,14 +106,19 @@ const questionList = [
         choices: ['true', 'false'],
     },
     {
-        name: 'leekCustomConfigDir',
+        name: 'leekConfig',
+        message: 'leek项目配置目录',
+        default: './.leekConfig/',
+    },
+    {
+        name: 'leekWebpackConfigDir',
         message: 'leek自定义配置webpack目录',
-        default: './leekCustonConfig/',
+        default: '{{leekConfig}}/webpack/',
     },
     {
         name: 'leekManifsetDir',
         message: 'leek打包生成的manifest存放的目录',
-        default: './.leekManifest/',
+        default: '{{leekConfig}}/manifest/',
     },
 ];
 
@@ -166,11 +171,11 @@ const initCmd = new Command({
             return;
         }
         const confPath = util.getConfigPath();
-        print.info(`初始化${conf.cons.commandName}项目`);
         if (fse.existsSync(confPath)) {
             print.red(conf.text.init.confExists);
             return;
         }
+        print.info(`初始化${conf.cons.commandName}项目`);
         let gloConfig = {};
         eachQuestion(questionList, (res) => {
             gloConfig = Object.assign({}, gloConfig, res);
@@ -178,9 +183,13 @@ const initCmd = new Command({
             gloConfig = Object.assign({}, gloConfig, res);
             // print.out('配置完成', gloConfig);
             util.startLoading(conf.text.init.startGenConf);
-
+            const leekConfig = path.resolve(process.cwd(), gloConfig.leekConfig);
             const distPath = path.resolve(process.cwd(), gloConfig.dist);
-            const leekCustomConfigDir = path.resolve(process.cwd(), gloConfig.leekCustomConfigDir);
+
+            gloConfig.leekWebpackConfigDir = gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig);
+            const leekWebpackConfigDir = path.resolve(process.cwd(), gloConfig.leekWebpackConfigDir);
+
+            gloConfig.leekManifsetDir = gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig);
             const leekManifsetDir = path.resolve(process.cwd(), gloConfig.leekManifsetDir);
 
             try {
@@ -195,10 +204,13 @@ const initCmd = new Command({
                 fse.writeFileSync(confPath, confContent, { encoding: 'utf8' });
 
                 // 清空并初始化dist
-                initDir(distPath);
+                // initDir(distPath);
+
+                // 初始化leekconfig
+                initDir(leekConfig);
 
                 // 创建自定义配置文件目录
-                initDir(leekCustomConfigDir);
+                initDir(leekWebpackConfigDir);
 
                 // 创建自定义manifest 目录
                 initDir(leekManifsetDir);

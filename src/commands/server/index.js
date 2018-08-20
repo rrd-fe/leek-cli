@@ -13,7 +13,6 @@ const print = require('../../utils/print');
 const Command = require('../../base/Command');
 const Option = require('../../base/Option');
 
-
 function startRNServer() {
     util.startDebugServer();
 }
