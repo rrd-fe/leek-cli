@@ -9,7 +9,7 @@
 
 
 module.exports = {
-    name: 'whami',
-    description: '查看当前登录用户',
-    command: 'whami',
+    name: 'debug',
+    description: '调试应用',
+    command: 'debug',
 };

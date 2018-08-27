@@ -8,12 +8,12 @@
 */
 
 const init = require('./commands/init');
-const whoami = require('./commands/whoami');
+const debug = require('./commands/debug');
 const server = require('./commands/server');
 
 
 module.exports = {
     init,
-    whoami,
+    debug,
     server,
 };

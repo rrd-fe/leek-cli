@@ -27,7 +27,6 @@ const helpCmd = new Option({
                 if (cmd.action) {
                     cmd.action();
                 }
-                // cmd.action && cmd.action();
             },
         },
     },

@@ -13,7 +13,7 @@ const util = require('../../utils/util');
 const pkg = require('../../../package.json');
 const conf = require('../../config/conf');
 
-const versionCmd = new Option({
+const versionOpt = new Option({
     name: 'version',
     command: '-v, --version',
     description: '显示当前版本',
@@ -29,4 +29,4 @@ const versionCmd = new Option({
     },
 });
 
-module.exports = versionCmd;
+module.exports = versionOpt;

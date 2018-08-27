@@ -24,8 +24,8 @@ const pwd = process.cwd();
 const tmpDir = `${process.env.HOME}/.grnTemp/`;
 
 // 该命令行必须在项目根目录运行
-function getPckageInfo() {
-    const packagePath = path.join(pwd, '/package.json');
+function getPckageInfo(dir) {
+    const packagePath = path.join(dir ? dir : pwd, '/package.json');
     if (!fs.existsSync(packagePath)) {
         // print.red('package.json文件不存在，请在项目根目录下运行');
         return false;
@@ -37,31 +37,6 @@ function getPckageInfo() {
         print.red(conf.text.pkgParseError);
         throw e;
     }
-}
-
-// 检查当前目录是否是项目所在目录
-
-function checkProjectPkg() {
-    const packagePath = path.join(pwd, '/package.json');
-    if (!fs.existsSync(packagePath)) {
-        print.red(conf.text.pkgNotExist);
-        return false;
-    }
-    try {
-        const pkg = fs.readFileSync(packagePath);
-        const pkgJSON = JSON.parse(pkg);
-        return pkgJSON;
-    } catch (e) {
-        print.red(conf.text.pkgParseError);
-        throw e;
-    }
-}
-
-function checkProjectEnv() {
-    if (!checkProjectPkg()) {
-        return false;
-    }
-    return true;
 }
 
 // 获取时间戳
@@ -104,25 +79,17 @@ function getConfigPath(dir) {
 }
 
 // 获取配置文件
-function getProjectConfig(callback) {
-    const confPath = getConfigPath();
-    fs.readFile(confPath, (err, data) => {
-        if (err) {
-            print.red(`读取配置文件失败: ${confPath}`);
-            return;
-        }
-        try {
-            const confData = JSON.parse(data);
-            if (callback) {
-                callback(confData);
-            }
-        } catch (e) {
-            print.red(e);
-            print.red(`配置文件格式错误: ${confPath}`);
-        }
-    });
+function getLeekConfig(cPath) {
+    const confPath = cPath ? cPath : getConfigPath();
+    try {
+        const confModule = require(cPath);
+        return confModule;
+    } catch (e) {
+        print.red(`读取配置文件失败: ${confPath}`);
+        print.red(e);
+    }
+    return null;
 }
-
 
 // 填充空白字符
 function piddingReset(str, len) {
@@ -162,7 +129,6 @@ function getUsageInfo(cmd, ccmd) {
     return infos;
 }
 
-
 // 输出命令行帮助文档
 function printCmdHelp(cmd) {
     const infos = getUsageInfo(cmd);
@@ -179,14 +145,6 @@ function printCmdTitle(cmdName) {
     print.out(conf.text.usageTitle.replace('<{ccmd}>', cName));
 }
 
-// 开启RN调试服务器
-function startDebugServer() {
-    // 检查当前的工作环境
-    if (!checkProjectEnv()) {
-        return;
-    }
-   
-}
 
 // 获取本机的ip地址
 function getIpAddr() {
@@ -322,7 +280,7 @@ function getNpmVersion() {
 }
 
 function getYarnVersion() {
-    return shelljs.exec('yarn -v', { silent: true });
+    return shelljs.exec('yarn --version', { silent: true });
 }
 
 function startLoading(info) {
@@ -342,18 +300,119 @@ function stopLoading(info) {
     print.out(info);
 }
 
+function hasLeekConf(lcPath) {
+    if (!lcPath) {
+        return false;
+    }
+    const fsList = fs.readdirSync(lcPath);
+    let isFinded = false;
+    fsList.forEach((fileName) => {
+        if (fileName.indexOf(conf.cons.configFileName) > -1) {
+            isFinded = true;
+        }
+    });
+    return isFinded;
+}
+
+// 由于当前运行的目录比较模糊，不知道在哪里但是一定，需要在package.json根目录下
+// 当前的package.json下又没有发现.leek.config.js 所有需要向上搜索一级，向下搜索一级
+// 如果没找到则说明当前项目不是leek项目，如果找到了再走后续流程
+function findLeekConf(source) {
+    const parentPath = path.join(source, '../');
+    const isGetLeekConf = hasLeekConf(parentPath);
+    const res = {};
+    if (isGetLeekConf) {
+        res.currentRun = pwd;
+        res.leekConfDir = parentPath;
+        res.leekConfPath = path.join(parentPath, conf.cons.configFileName);
+        res.hasLeekConf = isGetLeekConf;
+        res.leekConfData = getLeekConfig(path.join(parentPath, conf.cons.configFileName));
+        return res;
+    }
+    const currDirs = fs.readdirSync(source);
+    let isSearchedLeekConf = false;
+    const searchRes = {};
+    currDirs.forEach((dir) => {
+        const dirStat = fs.statSync(dir);
+        if (dirStat.isDirectory()) {
+            const absDir = path.join(source, dir);
+            if (hasLeekConf(absDir)) {
+                isSearchedLeekConf = true;
+                searchRes.hasLeekConf = isSearchedLeekConf;
+                searchRes.leekConfDir = absDir;
+                searchRes.currentRun = pwd;
+                searchRes.leekConfPath = path.join(absDir, conf.cons.configFileName);
+                searchRes.leekConfData = getLeekConfig(path.join(absDir, conf.cons.configFileName));
+            }
+        }
+    });
+    if (isSearchedLeekConf) {
+        return searchRes;
+    }
+    return null;
+}
+
+function currentRunServerDir(leekConf) {
+    if (!leekConf) {
+        return;
+    }
+    const dirs = leekConf.currentRun.split(path.sep);
+    if (dirs[dirs.length - 1].indexOf(leekConf.leekConfData.clientAlias) > -1) {
+        leekConf.isExecInServer = false;
+    } else {
+        leekConf.isExecInServer = true;
+    }
+
+    if (leekConf.isExecInServer) {
+        leekConf.leekServerDir = leekConf.currentRun;
+        leekConf.leekClientDir = path.join(leekConf.currentRun, leekConf.leekConfData.clientAlias);
+    } else {
+        dirs.pop();
+        leekConf.leekServerDir = dirs.join(path.sep);
+        leekConf.leekClientDir = leekConf.currentRun;
+    }
+    return leekConf;
+}
+
+// 检测当前是否运行在leek项目中
+function getLeekProjectInfo() {
+    let res = {
+        hasLeekConf: false,
+    };
+    const isGetLeekConf = hasLeekConf(pwd);
+    if (isGetLeekConf) {
+        // 当前目录包含 leek config 文件
+        res.hasLeekConf = true;
+        const leekConfPath = path.join(pwd, conf.cons.configFileName);
+        const leekConfData = getLeekConfig(leekConfPath);
+        res.currentRun = pwd;
+        res.leekConfDir = pwd;
+        res.leekConfPath = leekConfPath;
+        res.leekConfData = leekConfData;
+        res = currentRunServerDir(res);
+        return res;
+    }
+    // 当前运营的路径 仅支持 要么在 client 根目录 要么在 server根目录
+    // 加入在client目录运行则最后一级目录是client
+    // 假如在server端运行，则必包含一级目录为client
+    let leekConf = findLeekConf(pwd);
+    if (leekConf) {
+        leekConf = currentRunServerDir(leekConf);
+        return leekConf;
+    }
+    return null;
+}
+
 module.exports = {
-    checkProjectEnv,
+    getLeekProjectInfo,
     getConfigPath,
-    getProjectConfig,
+    getLeekConfig,
     getTimesp: currRunTimesp,
     getTempDirs,
     getUsageInfo,
     printCmdHelp,
     piddingReset,
     printCmdTitle,
-    startDebugServer,
-    checkProjectPkg,
     matchOpt,
     getIpAddr,
     getPckageInfo,

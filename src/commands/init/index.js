@@ -167,9 +167,11 @@ const initCmd = new Command({
     description: `初始化${conf.cons.commandName}项目`,
     command: 'init',
     action: () => {
-        if (!util.checkProjectEnv()) {
+        if (!util.getPckageInfo()) {
+            print.red(conf.text.pkgNotExist);
             return;
         }
+        // 获取leek config 路径
         const confPath = util.getConfigPath();
         if (fse.existsSync(confPath)) {
             print.red(conf.text.init.confExists);
@@ -185,12 +187,10 @@ const initCmd = new Command({
             util.startLoading(conf.text.init.startGenConf);
             const leekConfig = path.resolve(process.cwd(), gloConfig.leekConfig);
             const distPath = path.resolve(process.cwd(), gloConfig.dist);
-
-            gloConfig.leekWebpackConfigDir = gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig);
-            const leekWebpackConfigDir = path.resolve(process.cwd(), gloConfig.leekWebpackConfigDir);
-
-            gloConfig.leekManifsetDir = gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig);
-            const leekManifsetDir = path.resolve(process.cwd(), gloConfig.leekManifsetDir);
+            // gloConfig.leekWebpackConfigDir = gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig);
+            const leekWebpackConfigDir = path.resolve(process.cwd(), gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig));
+            // gloConfig.leekManifsetDir = gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig);
+            const leekManifsetDir = path.resolve(process.cwd(), gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig));
 
             try {
                 if (isInitToServer(gloConfig)) {

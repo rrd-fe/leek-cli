@@ -38,7 +38,6 @@ function execCmd(opt, rootCmd, args, cmdHooks) {
 }
 
 function prcessOptions(cmd, args, cmdHooks) {
-    // print.info(cmd);
     let isOptActionCalled = false;
     Object.keys(args).forEach((v) => {
         if (v === '_') {
