@@ -42,6 +42,7 @@
     "gradient-string": "^1.1.0",
     "inquirer": "^6.0.0",
     "minimist": "^1.2.0",
+    "nodemon": "^1.18.3",
     "pad": "^1.1.0",
     "prompt": "^1.0.0",
     "qrcode-terminal": "^0.11.0",

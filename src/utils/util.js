@@ -28,15 +28,15 @@ function getPckageInfo(dir) {
     const packagePath = path.join(dir ? dir : pwd, '/package.json');
     if (!fs.existsSync(packagePath)) {
         // print.red('package.json文件不存在，请在项目根目录下运行');
-        return false;
+        return null;
     }
     try {
         const pkg = fs.readFileSync(packagePath);
         return JSON.parse(pkg);
     } catch (e) {
         print.red(conf.text.pkgParseError);
-        throw e;
     }
+    return null;
 }
 
 // 获取时间戳

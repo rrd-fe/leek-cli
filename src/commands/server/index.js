@@ -11,7 +11,8 @@ const path = require('path');
 const glob = require('glob');
 const fse = require('fs-extra');
 const chokidar = require('chokidar');
-const chalk = require('chalk');
+const shelljs = require('shelljs');
+
 
 const util = require('../../utils/util');
 const print = require('../../utils/print');
@@ -226,6 +227,51 @@ function startWatch() {
     }
 }
 
+function startServer(opts) {
+    const pkgInfo = util.getPckageInfo();
+    if (!pkgInfo) {
+        print.red(conf.text.pkgNotExist);
+        return;
+    }
+    const leekConfInfo = getLeeekConfigInfo();
+    if (!leekConfInfo) {
+        return;
+    }
+    // tobeFixed: remove
+    // print.info(leekConfInfo);
+    const serverPgkInfo = getServerConfigInfo(leekConfInfo);
+    if (!serverPgkInfo) {
+        return;
+    }
+    const serverBuildInfo = getServerBuildConf(leekConfInfo, serverPgkInfo);
+    // const leekConf = util.getLeekConfig();
+    if (!serverBuildInfo) {
+        return;
+    }
+    // 切换运行环境
+    if (!leekConfInfo.isExecInServer) {
+        process.chdir(leekConfInfo.leekServerDir);
+    }
+    let startCmd = serverPgkInfo.scripts && serverPgkInfo.scripts.start;
+
+    if (opts.w || opts.watch) {
+        const nodemonPath = require.resolve('nodemon');
+        const nodemonCli = path.join(nodemonPath, '../../bin/nodemon.js');
+        startCmd = `${nodemonCli} ${serverPgkInfo.main}`;
+    } else if (!startCmd && serverPgkInfo.main) {
+        startCmd = `node ${serverPgkInfo.main}`;
+    }
+    if (startCmd) {
+        if (opts.e || opts.env) {
+            shelljs.exec(`NODE_ENV=${opts.e || opts.env} ${startCmd}`);
+        } else {
+            shelljs.exec(startCmd);
+        }
+    } else {
+        print.red(conf.text.server.);
+    }
+}
+
 const buildCmd = new Command({
     name: 'build',
     description: '构建服务端代码',
@@ -255,7 +301,7 @@ buildCmd.addOption('env', new Option({
     actions: {
         'e;env': {
             action: (cmd) => {
-                print.out('env options');
+                print.out('构建环境暂未支持...');
             },
         },
     },
@@ -264,30 +310,46 @@ buildCmd.addOption('env', new Option({
 buildCmd.addOption('watch', new Option({
     name: 'watch',
     command: '-w, --watch',
-    description: '当前构建的环境',
+    description: '监控文件变化自动构建代码',
 }));
 
 const startServerCmd = new Command({
     name: 'start',
     description: '启动node服务',
     command: 'start',
-    action: (cmd) => {
+    action: (cmd, opts) => {
+        // 启动服务 默认情况
 
+        // todoFixed: remove
+        console.log('当前的参数:', opts);
+
+        startServer(opts || {});
     },
 });
 
 startServerCmd.addHelpSpec('启动node服务');
 startServerCmd.addHelpExample('   grn server start');
 
+startServerCmd.addOption('watch', new Option({
+    name: 'watch',
+    command: '-w, --watch',
+    description: '监控文件变化自动重启服务',
+}));
+
+startServerCmd.addOption('env', new Option({
+    name: 'env',
+    command: '-e, --env',
+    description: '设置当前运行的环境',
+}));
 
 const serverCmd = new Command({
     name: 'server',
-    description: 'node服务',
+    description: '后端node服务',
     command: 'server',
 });
+
 serverCmd.addHelpSpec('后端node服务');
 serverCmd.addHelpExample('   grn server build -e production');
-
 
 serverCmd.addSubCmd(startServerCmd);
 serverCmd.addSubCmd(buildCmd);

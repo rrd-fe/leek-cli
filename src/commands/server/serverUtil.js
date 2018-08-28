@@ -16,7 +16,4 @@ module.exports = {
         }
         return util.getPckageInfo(leekConf.leekClientDir);
     },
-    getServerRoot() {
-        
-    },
 };

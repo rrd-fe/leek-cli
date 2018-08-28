@@ -35,6 +35,7 @@ const text = {
             startWatch: '正在启动watch服务...',
             startWatchOver: 'watch服务启动完成',
             mustBeConf: '没有找到服务编译配置, 必须配置需要编译的内容',
+            notConfServerStart: '没有配置服务启动命令',
         },
     },
     init: {
