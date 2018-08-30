@@ -403,10 +403,37 @@ function getLeekProjectInfo() {
     return null;
 }
 
+function getLeekConfDir(leekConf) {
+    if (!leekConf || !leekConf.leekConfData) {
+        return null;
+    }
+    const leekConfDir = path.resolve(leekConf.leekConfDir, leekConf.leekConfData.leekConfig);
+    return leekConfDir;
+}
+
+function getWebpackConfDir(leekConf) {
+    if (!leekConf || !leekConf.leekConfData) {
+        return null;
+    }
+    const webpackConfDir = path.resolve(leekConf.leekConfData.leekWebpackConfigDir.replace('{{leekConfig}}', getLeekConfDir(leekConf)));
+    return webpackConfDir;
+}
+
+function getManifestConfDir(leekConf) {
+    if (!leekConf || !leekConf.leekConfData) {
+        return null;
+    }
+    const webpackConfDir = path.resolve(leekConf.leekConfData.leekManifsetDir.replace('{{leekConfig}}', getLeekConfDir(leekConf)));
+    return webpackConfDir;
+}
+
 module.exports = {
     getLeekProjectInfo,
     getConfigPath,
     getLeekConfig,
+    getLeekConfDir,
+    getWebpackConfDir,
+    getManifestConfDir,
     getTimesp: currRunTimesp,
     getTempDirs,
     getUsageInfo,

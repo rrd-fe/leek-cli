@@ -63,8 +63,21 @@ const logo = {
     },
 };
 
+const client = {
+    sourceDir: './src',
+    vendorDir: 'static/vendor',
+    assestDir: './assets/',
+    webpackConfDirTmp: 'webpack.config.{name}.js',
+    module: {
+        pageDir: 'page/',
+        uiDir: 'ui/',
+        widgetDir: 'widget/',
+    },
+};
+
 module.exports = {
     text,
     cons,
     logo,
+    client,
 };

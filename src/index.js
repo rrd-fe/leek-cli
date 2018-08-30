@@ -10,10 +10,12 @@
 const init = require('./commands/init');
 const debug = require('./commands/debug');
 const server = require('./commands/server');
+const bundle = require('./commands/bundle');
 
 
 module.exports = {
     init,
     debug,
     server,
+    bundle,
 };

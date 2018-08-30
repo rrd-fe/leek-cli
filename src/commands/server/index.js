@@ -268,7 +268,7 @@ function startServer(opts) {
             shelljs.exec(startCmd);
         }
     } else {
-        print.red(conf.text.server.);
+        print.red(conf.text.server.notConfServerStart);
     }
 }
 
@@ -319,10 +319,6 @@ const startServerCmd = new Command({
     command: 'start',
     action: (cmd, opts) => {
         // 启动服务 默认情况
-
-        // todoFixed: remove
-        console.log('当前的参数:', opts);
-
         startServer(opts || {});
     },
 });
