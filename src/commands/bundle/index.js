@@ -19,6 +19,7 @@ const allCmd = require('./all');
 
 const util = require('../../utils/util');
 const print = require('../../utils/print');
+const wpUtil = require('../../utils/webpackUtil');
 const conf = require('../../config/conf');
 const dllConf = require('../../config/webpack.config.dll');
 
@@ -91,7 +92,7 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
     }
     const distVendor = path.join(distDir, clientInfo.vendorDir);
     const publicPath = path.join(leekConfInfo.leekConfData.prefix, leekConfInfo.leekConfData.publicPath);
-    const sassIncludePath = clientInfo.sassIncludePaths;
+    const sassIncludePath = clientInfo.dll.sassIncludePaths;
     const opts = {
         isProd,
         isWatch,
@@ -129,7 +130,74 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
     });
 }
 
+function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
+    const moduleInfos = {
+        entry: [],
+        noEntry: [],
+        watchFiles: [],
+    };
 
+    if (!pmoduleInfo || !pmoduleInfo[moduleName]) {
+        print.out(`没有找到 ${moduleName} 模块`);
+        return;
+    }
+    const mInfo = pmoduleInfo[moduleName];
+    let isWatch = false;
+    let isProd = false;
+    let inlineCss = false;
+    if (opts.w || opts.watch) {
+        isWatch = true;
+    }
+
+    if (opts.e === 'production' || opts.env === 'production') {
+        isProd = true;
+    }
+
+    if (opts.ic || opts.inlineCss) {
+        inlineCss = true;
+    }
+
+    const publicPath = path.join(leekConfInfo.leekConfData.prefix, leekConfInfo.leekConfData.publicPath);
+    const distDir = path.join(leekConfInfo.leekConfPath, leekConfInfo.leekConfData.dist);
+
+    // 获取页面信息
+    const tplInfo = wpUtil.findTpl(leekConfInfo, {
+        moduleName,
+        isWatch,
+        isProd,
+        publicPath,
+        finalPath: mInfo.pagePath,
+        incss: inlineCss,
+        moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
+        srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
+        clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
+        assetDir: clientInfo.assestDir,
+        sassIncludePath: clientInfo.common.sassIncludePaths,
+        distDir,
+        manifestDir: util.getManifestConfDir(leekConfInfo),
+        commonJSName: 'manifest-commonDll.json',
+        commonCssName: 'manifest-commonCss.json',
+    }, clientInfo);
+
+    const widgetInfo = wpUtil.findWidet(leekConfInfo, {
+        moduleName,
+        isWatch,
+        isProd,
+        publicPath,
+        widgetPath: mInfo.widgetPath,
+        incss: inlineCss,
+    }, clientInfo);
+
+    moduleInfos.entry = moduleInfos.entry.concat(tplInfo.entry);
+    moduleInfos.noEntry = moduleInfos.noEntry.concat(tplInfo.noEntry);
+
+    moduleInfos.entry = moduleInfos.entry.concat(widgetInfo.entry);
+    moduleInfos.noEntry = moduleInfos.noEntry.concat(widgetInfo.noEntry);
+
+    const configModule = require('../../config/webpack.config.common.js');
+    wpUtil.execBuildPage(moduleInfos, configModule, leekConfInfo);
+    wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
+}
 function bundleSource(opts) {
     const leekConfInfo = getLeeekConfigInfo();
     const clientPkgInfo = getClientConfigInfo(leekConfInfo);
@@ -138,9 +206,10 @@ function bundleSource(opts) {
         bundleDll(leekConfInfo, clientInfo, opts, clientPkgInfo);
         return;
     }
-
+    const pmoduleInfo = wpUtil.getModuleInfos(clientInfo, leekConfInfo);
     if (opts.m === 'common' || opts.module === 'common') {
-        
+        bundleCommon('common', pmoduleInfo, leekConfInfo, clientInfo, opts);
+        return;
     }
 
 }

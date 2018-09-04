@@ -68,10 +68,17 @@ const client = {
     vendorDir: 'static/vendor',
     assestDir: './assets/',
     webpackConfDirTmp: 'webpack.config.{name}.js',
+    commonJSName: 'manifest-commonDll.json',
+    commonCssName: 'manifest-commonCss.json',
     module: {
         pageDir: 'page/',
         uiDir: 'ui/',
         widgetDir: 'widget/',
+        viewsDir: 'views/',
+        staticDir: 'static/',
+    },
+    dll: {},
+    common: {
     },
 };
 

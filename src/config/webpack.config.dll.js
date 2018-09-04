@@ -93,7 +93,7 @@ function getModule(options, modules) {
     if (!options) {
         return null;
     }
-    if (Array.isArray(modules) && modules.length > 0) {
+    if (modules && modules.rules && Array.isArray(modules.rules)) {
         return modules;
     }
     const opts = Object.assign({}, {
@@ -347,7 +347,7 @@ module.exports = {
 
         baseConf.module = getModule({
             distVendor: opts.distVendor,
-            assetsDir: opts.assetDir,
+            assetDir: opts.assetDir,
             publicPath: opts.publicPath,
             sassIncludePath: opts.sassIncludePath,
             isProd: opts.isProd,
