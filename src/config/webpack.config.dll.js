@@ -302,12 +302,13 @@ function getPlugin(options, plugins) {
         new CleanWebpackPlugin(opts.distVendor, {
             // root: path.resolve(__dirname, '../../'),
             root: opts.distDir,
+            verbose: false,
         }),
         new webpack.DllPlugin({
             path: path.join(opts.manifestConfDir, 'manifest-[name].json'),
             name: '[name]_[chunkhash]',
             // context: __dirname,
-            // context: opts.manifestConfDir,
+            context: opts.manifestConfDir,
         }),
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output
@@ -331,7 +332,7 @@ function getPlugin(options, plugins) {
 }
 
 module.exports = {
-    getDllWPConf(options) {
+    getConfig(options) {
         if (!options) {
             return null;
         }

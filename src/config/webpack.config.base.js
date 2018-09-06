@@ -6,7 +6,16 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const HtmlWebpackIncludeAssetsPlugin = require('rrd-html-webpack-include-assets-plugin');
+const HtmlWebpackPlaceHolderPlugin = require('html-webpack-place-holder-plugin');
+
+// ###################       参数变量          #######################
+
+// const pageList = [
+//     'src/demo/page/chinanet/chinanet.tpl',
+// ];
+// const publicPath = '/jms/static/client/demo/page/chinanet/';
+
+// const pagePath = './client/demo/page/chinanet';
 
 function getBaseConfig(options) {
     if (!options) {
@@ -19,22 +28,15 @@ function getBaseConfig(options) {
 
     return {
         mode: opts.isProd ? 'production' : 'development',
-        // context: path.resolve(__dirname, '../src/common/'),
         context: opts.moduleDir,
         devtool: opts.isProd ? false : 'cheap-module-source-map', // 开发模式下
-        entry: {
-            // 'chinanet': './page/chinanet/chinanet.js',
-            // 'chinanetCss': './page/chinanet/chinanet.scss',
+        watchOptions: {
+            aggregateTimeout: 300,
+            ignored: /node_modules/,
         },
-        output: {
-            // path: path.resolve(__dirname, '../../../../dist/', pagePath), //打包后的文件存放的地方
-            // filename: "[id]-[chunkhash:6].js", //打包后输出文件的文件名
-            // publicPath: publicPath,
-        },
+        entry: {},
+        output: {},
         optimization: {
-            // runtimeChunk:{
-            //     name: 'manifeset.json',
-            // },
             splitChunks: {
                 cacheGroups: {
                     styles: {
@@ -49,118 +51,48 @@ function getBaseConfig(options) {
                 new UglifyJsPlugin({
                     cache: true,
                     parallel: true,
-                    sourceMap: !opts.isProd, // set to true if you want JS source maps
+                    sourceMap: !opts.prod,
                 }),
                 new OptimizeCSSAssetsPlugin({}),
             ],
         },
         resolve: {
-            // // 优先搜索当前src 目录，其次搜索node modules
+            // 优先搜索当前src 目录，其次搜索node modules
             // modules: [path.resolve(__dirname, '../src/'), 'node_modules'],
             // alias: {
             //     // Common: path.resolve(__dirname, '../../common/'),
+            //     // jquery$: path.resolve(__dirname, '../../common/static/js/lib/jquery/jquery.js')
             //     // jquery$: path.resolve(__dirname, '../src/common/static/js/lib/jquery/jquery.js'), // 全局配置jquery
-            //     // jquery$: path.resolve(__dirname, '../../common/static/js/lib/jquery/jquery.js'), // 全局配置jquery
             // },
             // extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
+            // unsafeCache: true,
         },
         module: {},
         plugins: [],
     };
 }
 
-function formatPlugin(options, plugins) {
-    if (Array.isArray(plugins) && plugins.length > 0) {
-        return plugins;
+function getResolve(options, resolve) {
+    if (!options) {
+        return null;
     }
     if (!options) {
         return null;
     }
     const opts = Object.assign({}, {
-        incss: '',
-        distVendor: '',
-        distDir: '',
-        publicPath: '',
-        sassIncludePath: [],
-        cleanStatic: '',
-        cleanView: '',
-        commonJSName: '',
-        commonCssName: '',
-        manifestDir: '',
+        srcDir: '',
+        clientNodeModules: '',
     }, options);
 
-    // pageList, cleanStatic, cleanView, incss
-    return [
-        new CleanWebpackPlugin([
-            opts.cleanStatic,
-            opts.cleanView,
-        ], {
-            root: opts.distDir,
-            beforeEmit: true,
-            verbose: false,
-        }),
-        // new HappyPack({
-        //     id: 'happybabel',
-        //     loaders: ['babel-loader?cacheDirectory=true'],
-        //     threadPool: happyThreadPool,
-        //     cache: true,
-        //     verbose: true,
-        // }),
-        new webpack.DllReferencePlugin({
-            // context: __dirname,
-            context: opts.manifestDir,
-            manifest: require(path.join(opts.manifestDir, opts.commonJSName)),
-        }),
-        new webpack.DllReferencePlugin({
-            // context: __dirname,
-            context: opts.manifestDir,
-            manifest: require(path.join(opts.manifestDir, opts.commonCssName)),
-        }),
-        new MiniCssExtractPlugin({
-            // Options similar to the same options in webpackOptions.output
-            // both options are optional
-            filename: '[name]-[hash:6].css',
-            chunkFilename: '[id]-[hash:6].css',
-        }),
-        new HtmlWebpackPlugin({
-            filename: opts.pageDist,
-            template: opts.pageSource,
-            hash: false,
-            minify: true,
-            // xhtml: true,
-            inject: false,
-            notUsePlaceHolder: true,
-            isInlineCss: opts.incss,
-            // isPreprocess: true,
-        }),
-        new HtmlWebpackIncludeAssetsPlugin({
-            assets: [
-                {
-                    path: '../../../vendor/',
-                    globPath: opts.distVendor,
-                    glob: '*.js',
-                    type: 'js',
-                },
-                {
-                    path: '../../../vendor/',
-                    globPath: opts.distVendor,
-                    glob: '*.css',
-                    type: 'css',
-                },
-            ],
-            append: false,
-            includeData: '',
-        }),
-    ];
+    return Object.assign({}, {
+        // 优先搜索当前src 目录，其次搜索node modules
+        modules: [opts.srcDir, opts.clientNodeModules],
+        alias: {},
+        extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
+        unsafeCache: true,
+    }, resolve);
 }
 
-function getOutput(pageDist, publicPath) {
-    return {
-        path: pageDist, // 打包后的文件存放的地方
-        filename: '[id]-[chunkhash:6].js', // 打包后输出文件的文件名
-        publicPath,
-    };
-}
 
 function getModule(options, modules) {
     if (!options) {
@@ -359,24 +291,108 @@ function getModule(options, modules) {
     };
 }
 
-function getResolve(options, resolve) {
-    if (!options) {
-        return null;
+function getTemplate(isInlineCss) {
+    if (isInlineCss) {
+        return `
+{% block block_head_css %}
+    <% for (var css in assets.css) { %>
+        <style>
+            <%- sourceAssets[assets.css[css].substr(publicPath.length)].source() %>
+        </style>
+    <% } %>
+{% endblock %}
+            
+{% block block_body_js %}
+    <% for (var file in assets.js) { %>
+    <script src="<%= assets.js[file] %>"></script>
+    <% } %>
+{% endblock %}`;
+        
+    }
+    return `
+{% block block_head_css %}
+    <% for (var css in assets.css) { %>
+    <link href="<%= assets.css[css] %>" rel="stylesheet">
+    <% } %>
+{% endblock %}
+            
+{% block block_body_js %}
+    <% for (var file in assets.js) { %>
+    <script src="<%= assets.js[file] %>"></script>
+    <% } %>
+{% endblock %}`;
+
+}
+
+function formatPlugin(options, plugins) {
+    if (Array.isArray(plugins) && plugins.length > 0) {
+        return plugins;
     }
     if (!options) {
         return null;
     }
     const opts = Object.assign({}, {
-        srcDir: '',
-        clientNodeModules: '',
+        incss: '',
+        distVendor: '',
+        distDir: '',
+        publicPath: '',
+        sassIncludePath: [],
+        cleanStatic: '',
+        cleanView: '',
+        commonJSName: '',
+        commonCssName: '',
+        manifestDir: '',
     }, options);
 
-    return Object.assign({}, {
-        // 优先搜索当前src 目录，其次搜索node modules
-        modules: [opts.srcDir, opts.clientNodeModules],
-        alias: {},
-        extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
-    }, resolve);
+    // pageList, cleanStatic, cleanView, incss
+    return [
+        new CleanWebpackPlugin([
+            opts.cleanStatic,
+            opts.cleanView,
+        ], {
+            root: opts.distDir,
+            beforeEmit: true,
+            verbose: false,
+        }),
+        new webpack.DllReferencePlugin({
+            // context: __dirname,
+            context: opts.manifestDir,
+            manifest: require(path.join(opts.manifestDir, opts.commonJSName)),
+        }),
+        new webpack.DllReferencePlugin({
+            // context: __dirname,
+            context: opts.manifestDir,
+            manifest: require(path.join(opts.manifestDir, opts.commonCssName)),
+        }),
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: '[name]-[hash:6].css',
+            chunkFilename: '[id]-[hash:6].css',
+        }),
+        new HtmlWebpackPlugin({
+            filename: opts.pageDist,
+            template: opts.pageSource,
+            hash: false,
+            minify: true,
+            // xhtml: true,
+            inject: false,
+            notUsePlaceHolder: true,
+            isInlineCss: opts.incss,
+            // isPreprocess: true,
+        }),
+        new HtmlWebpackPlaceHolderPlugin({
+            content: getTemplate(opts.incss),
+        }),
+    ];
+}
+
+function getOutput(pageDist, publicPath) {
+    return {
+        path: pageDist, // 打包后的文件存放的地方
+        filename: '[id]-[chunkhash:6].js', // 打包后输出文件的文件名
+        publicPath,
+    };
 }
 
 module.exports = {
@@ -437,4 +453,4 @@ module.exports = {
         baseConfig.watch = params.watch;
         return baseConfig;
     },
-};
+}

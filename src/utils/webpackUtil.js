@@ -103,7 +103,53 @@ const webpackUtil = {
         });
         return watchFiles;
     },
-    // 构建 widget 
+    // 获取webpack配置信息
+    getWebpackConfInfo(leekConf, moduleName, pageName) {
+        if (!moduleName) {
+            return null;
+        }
+        // 优先获取 自定义配置，如果没有找到自定义配置 则使用默认配置
+        const wpCustomDir = util.getWebpackConfDir(leekConf);
+        let relName = '';
+        if (moduleName) {
+            relName += moduleName;
+        }
+        if (pageName) {
+            relName += `.${pageName}`;
+        }
+        // 当 pageName 不存在的时候 relName === moduleName
+        const pageConfName = `webpack.config.${relName}.js`;
+        const moduleConfName = `webpack.config.${moduleName}.js`;
+        let moduleConf = null;
+        try {
+            let configPath = '';
+            // 判断是否存在 自定配置
+            if (fs.existsSync(path.join(wpCustomDir, pageConfName))) {
+                configPath = path.join(wpCustomDir, pageConfName);
+            } else if (fs.existsSync(path.join(wpCustomDir, moduleConfName))) {
+                configPath = path.join(wpCustomDir, moduleConfName);
+            }
+            // 如果不存在则 寻找 模块 配置是否存在
+            const customConf = require(configPath);
+            if (customConf.getConfig) {
+                moduleConf = customConf;
+            } else {
+                moduleConf = {
+                    getConfig() {
+                        return customConf;
+                    },
+                };
+            }
+        } catch (e) {
+            if (moduleName !== 'common' && moduleName !== 'dll') {
+                moduleConf = require(`../config/webpack.config.base.js`);
+            } else {
+                moduleConf = require(`../config/webpack.config.${moduleName}.js`);
+            }
+        }
+        return moduleConf;
+    },
+    // 构建 widget
     execBuildWidget(moduleInfos, leekConfInfo) {
         const watchFiles = [];
         if (!Array.isArray(moduleInfos.noEntry)) {
@@ -125,13 +171,17 @@ const webpackUtil = {
         return watchFiles;
     },
     // 构建有js入口的页面
-    execBuildPage(webpackConfigs, configModule, leekConfInfo) {
+    execBuildPage(webpackConfigs, bundleInfo, leekConfInfo) {
         if (webpackConfigs.entry.length < 1) {
             return;
         }
         const config = webpackConfigs.entry.shift();
+        const configModule = this.getWebpackConfInfo(leekConfInfo, bundleInfo.moduleName, config.pageName);
+        if (!configModule) {
+            print.out(`没有找到对应的配置文件: 模块名 ${bundleInfo.moduleName} 页面名 ${bundleInfo.pageName}`);
+            return;
+        }
         const finalConfig = configModule.getConfig(config);
-
         process.chdir(leekConfInfo.leekConfDir);
         util.startLoading('开始进行webpack编译');
         webpack(finalConfig, (err, stats) => {
@@ -151,7 +201,7 @@ const webpackUtil = {
                     print.yellow('\n\n');
                 }
             }
-            this.execBuildPage(webpackConfigs, configModule, leekConfInfo);
+            this.execBuildPage(webpackConfigs, bundleInfo, leekConfInfo);
         });
     },
     findTpl(leekConf, options, clientInfo) {
@@ -191,12 +241,13 @@ const webpackUtil = {
             pagePath = (`./${pagePath}`).replace(srcRepStr, '');
             if (res.hasJS) {
                 jsPath = res.js.replace(leekConf.leekClientDir, '');
-                jsPath = jsPath.replace('/' + srcRepStr + opts.moduleName + '/', './');
+                jsPath = jsPath.replace(path.sep + srcRepStr + opts.moduleName + path.sep, `.${path.sep}`);
                 jsEntryName = path.basename(res.js, path.extname(res.js));
             }
             const finalConfig = {
                 // jsEntryName: jsEntryName,
                 // jsEntry: jsPath,
+                pageName: path.dirname(relRoot.replace(srcRepStr, '').replace(opts.moduleName + path.sep, '').replace(clientInfo.module.pageDir, '')),
                 tplPath: relRoot,
                 publicPath: path.join(opts.publicPath, pagePath) + path.sep,
                 outputDist: path.join(opts.distDir, path.join(clientInfo.module.staticDir, pagePath)),
@@ -253,7 +304,7 @@ const webpackUtil = {
 
         if (!fs.existsSync(opts.widgetPath)) {
             print.out('当前模块 不包含 widget 模块:', opts.widgetPath);
-            return null;
+            return entrys;
         }
         this.findPage(opts.widgetPath, (widget) => {
             const relRoot = widget.tpl.replace(leekConf.leekClientDir, '');

@@ -8,20 +8,16 @@
  * @Last modified time: 2017-03-31
  */
 
+const fs = require('fs');
 const path = require('path');
-const glob = require('glob');
-const fse = require('fs-extra');
-const chokidar = require('chokidar');
-const shelljs = require('shelljs');
 const webpack = require('webpack');
+const _ = require('lodash');
 
 const allCmd = require('./all');
-
 const util = require('../../utils/util');
 const print = require('../../utils/print');
 const wpUtil = require('../../utils/webpackUtil');
 const conf = require('../../config/conf');
-const dllConf = require('../../config/webpack.config.dll');
 
 const Command = require('../../base/Command');
 const Option = require('../../base/Option');
@@ -39,7 +35,7 @@ function getLeeekConfigInfo() {
 // 获取客户端package.json信息
 function getClientConfigInfo(leekConfInfo) {
     if (!leekConfInfo) {
-        return;
+        return null;
     }
     const clientPgkInfo = util.getPckageInfo(leekConfInfo.leekClientDir);
     if (!clientPgkInfo) {
@@ -62,6 +58,7 @@ function checkEnv() {
     if (!clientPkgInfo) {
         return false;
     }
+    return true;
 }
 
 function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
@@ -107,7 +104,9 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
         module: clientInfo.module,
         plugins: clientInfo.plugins,
     };
-    const dllWpConf = dllConf.getDllWPConf(opts);
+
+    const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
+    const dllWpConf = dllConf.getConfig(opts);
     process.chdir(leekConfInfo.leekConfDir);
     util.startLoading('开始进行webpack编译');
     webpack(dllWpConf, (err, stats) => {
@@ -160,24 +159,53 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
     const publicPath = path.join(leekConfInfo.leekConfData.prefix, leekConfInfo.leekConfData.publicPath);
     const distDir = path.join(leekConfInfo.leekConfPath, leekConfInfo.leekConfData.dist);
 
-    // 获取页面信息
-    const tplInfo = wpUtil.findTpl(leekConfInfo, {
-        moduleName,
-        isWatch,
-        isProd,
-        publicPath,
-        finalPath: mInfo.pagePath,
-        incss: inlineCss,
-        moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
-        srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
-        clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
-        assetDir: clientInfo.assestDir,
-        sassIncludePath: clientInfo.common.sassIncludePaths,
-        distDir,
-        manifestDir: util.getManifestConfDir(leekConfInfo),
-        commonJSName: 'manifest-commonDll.json',
-        commonCssName: 'manifest-commonCss.json',
-    }, clientInfo);
+    let tplInfo = null;
+    const pageName = opts.p || opts.page;
+    if (_.isString(pageName) && pageName) {
+        const specPagePath = path.join(mInfo.pagePath, pageName);
+        if (!fs.existsSync(specPagePath)) {
+            print.out('没有找到指定的页面');
+            print.out(specPagePath);
+            return;
+        }
+        // finalPath = specPagePath;
+        tplInfo = wpUtil.findTpl(leekConfInfo, {
+            moduleName,
+            isWatch,
+            isProd,
+            publicPath,
+            finalPath: specPagePath,
+            incss: inlineCss,
+            moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
+            srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
+            clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
+            assetDir: clientInfo.assestDir,
+            sassIncludePath: clientInfo.common.sassIncludePaths,
+            distDir,
+            manifestDir: util.getManifestConfDir(leekConfInfo),
+            commonJSName: 'manifest-commonDll.json',
+            commonCssName: 'manifest-commonCss.json',
+        }, clientInfo);
+    } else {
+        // 获取页面信息
+        tplInfo = wpUtil.findTpl(leekConfInfo, {
+            moduleName,
+            isWatch,
+            isProd,
+            publicPath,
+            finalPath: mInfo.pagePath,
+            incss: inlineCss,
+            moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
+            srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
+            clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
+            assetDir: clientInfo.assestDir,
+            sassIncludePath: clientInfo.common.sassIncludePaths,
+            distDir,
+            manifestDir: util.getManifestConfDir(leekConfInfo),
+            commonJSName: 'manifest-commonDll.json',
+            commonCssName: 'manifest-commonCss.json',
+        }, clientInfo);
+    }
 
     const widgetInfo = wpUtil.findWidet(leekConfInfo, {
         moduleName,
@@ -194,10 +222,13 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
     moduleInfos.entry = moduleInfos.entry.concat(widgetInfo.entry);
     moduleInfos.noEntry = moduleInfos.noEntry.concat(widgetInfo.noEntry);
 
-    const configModule = require('../../config/webpack.config.common.js');
-    wpUtil.execBuildPage(moduleInfos, configModule, leekConfInfo);
+    wpUtil.execBuildPage(moduleInfos, {
+        moduleName,
+        pageName,
+    }, leekConfInfo);
     wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
 }
+
 function bundleSource(opts) {
     const leekConfInfo = getLeeekConfigInfo();
     const clientPkgInfo = getClientConfigInfo(leekConfInfo);
@@ -207,11 +238,17 @@ function bundleSource(opts) {
         return;
     }
     const pmoduleInfo = wpUtil.getModuleInfos(clientInfo, leekConfInfo);
-    if (opts.m === 'common' || opts.module === 'common') {
-        bundleCommon('common', pmoduleInfo, leekConfInfo, clientInfo, opts);
-        return;
+    const moduleName = opts.m || opts.module;
+    if (_.isString(moduleName) && moduleName) {
+        bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts);
+    } else {
+        print.out('没有指定打包的模块');
     }
 
+    if (moduleName === 'all') {
+        print.out('构建所有的模块');
+        return;
+    }
 }
 
 const bundleCmd = new Command({
