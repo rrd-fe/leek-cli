@@ -65,8 +65,8 @@ const logo = {
 
 const client = {
     sourceDir: './src',
-    vendorDir: 'static/vendor',
-    assestDir: './assets/',
+    vendorDir: 'vendor/',
+    assetsDir: './assets/',
     webpackConfDirTmp: 'webpack.config.{name}.js',
     commonJSName: 'manifest-commonDll.json',
     commonCssName: 'manifest-commonCss.json',
@@ -80,6 +80,7 @@ const client = {
     dll: {},
     common: {
     },
+    base: {},
 };
 
 module.exports = {

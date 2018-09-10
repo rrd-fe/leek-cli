@@ -15,21 +15,23 @@ const webpackUtil = {
         const webpackConfPath = util.getWebpackConfDir(leekConf);
         const modules = {};
         try {
-            let tmpMod = fs.readdirSync(sourcePath);
-            tmpMod = tmpMod.filter((v) => {
-                // 过滤掉无用的隐藏文件
-                if (v.indexOf('.') === 0) {
-                    return false;
-                }
-                modules[v] = {
-                    configPath: path.resolve(webpackConfPath, conf.client.webpackConfDirTmp.replace('{name}', v)),
-                    pagePath: path.resolve(sourcePath, v, conf.client.module.pageDir),
-                    widgetPath: path.resolve(sourcePath, v, conf.client.module.widgetDir),
-                    uiPath: path.resolve(sourcePath, v, conf.client.module.uiDir),
-                    moduleRoot: path.resolve(sourcePath, v),
-                };
-                return true;
-            });
+            const tmpMod = fs.readdirSync(sourcePath);
+            if (tmpMod) {
+                tmpMod.filter((v) => {
+                    // 过滤掉无用的隐藏文件
+                    if (v.indexOf('.') === 0) {
+                        return false;
+                    }
+                    modules[v] = {
+                        configPath: path.resolve(webpackConfPath, conf.client.webpackConfDirTmp.replace('{name}', v)),
+                        pagePath: path.resolve(sourcePath, v, conf.client.module.pageDir),
+                        widgetPath: path.resolve(sourcePath, v, conf.client.module.widgetDir),
+                        uiPath: path.resolve(sourcePath, v, conf.client.module.uiDir),
+                        moduleRoot: path.resolve(sourcePath, v),
+                    };
+                    return true;
+                });
+            }
         } catch (e) {
             print.red(e);
         }
@@ -130,7 +132,7 @@ const webpackUtil = {
                 configPath = path.join(wpCustomDir, moduleConfName);
             }
             // 如果不存在则 寻找 模块 配置是否存在
-            const customConf = require(configPath);
+            const customConf = require(configPath); // eslint-disable-line global-require
             if (customConf.getConfig) {
                 moduleConf = customConf;
             } else {
@@ -142,9 +144,9 @@ const webpackUtil = {
             }
         } catch (e) {
             if (moduleName !== 'common' && moduleName !== 'dll') {
-                moduleConf = require(`../config/webpack.config.base.js`);
+                moduleConf = require('../config/webpack.config.base.js'); // eslint-disable-line global-require
             } else {
-                moduleConf = require(`../config/webpack.config.${moduleName}.js`);
+                moduleConf = require(`../config/webpack.config.${moduleName}.js`);// eslint-disable-line global-require
             }
         }
         return moduleConf;
@@ -176,14 +178,16 @@ const webpackUtil = {
             return;
         }
         const config = webpackConfigs.entry.shift();
-        const configModule = this.getWebpackConfInfo(leekConfInfo, bundleInfo.moduleName, config.pageName);
+        
+        const configModule = this.getWebpackConfInfo(leekConfInfo,
+            bundleInfo.moduleName, config.pageName);
         if (!configModule) {
-            print.out(`没有找到对应的配置文件: 模块名 ${bundleInfo.moduleName} 页面名 ${bundleInfo.pageName}`);
+            print.out(`没有找到对应的配置文件: 模块名 ${config.moduleName} 页面名 ${config.pageName}`);
             return;
         }
         const finalConfig = configModule.getConfig(config);
         process.chdir(leekConfInfo.leekConfDir);
-        util.startLoading('开始进行webpack编译');
+        util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`);
         webpack(finalConfig, (err, stats) => {
             const info = stats.toJson();
             util.stopLoading('编译结束');
@@ -204,6 +208,21 @@ const webpackUtil = {
             this.execBuildPage(webpackConfigs, bundleInfo, leekConfInfo);
         });
     },
+    getCustomConfigModule(clientInfo, moduleName) {
+        let res = {};
+        let realModuleName = '';
+        if (moduleName !== 'common') {
+            realModuleName = 'base';
+        } else {
+            realModuleName = moduleName;
+        }
+        res = {
+            plugins: clientInfo[realModuleName].plugins,
+            module: clientInfo[realModuleName].module,
+            resolve: clientInfo[realModuleName].resolve,
+        };
+        return res;
+    },
     findTpl(leekConf, options, clientInfo) {
         const entrys = {
             entry: [],
@@ -223,7 +242,7 @@ const webpackUtil = {
             srcDir: path.join(leekConf.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
             clientNodeModules: path.join(leekConf.leekClientDir, './node_modules'),
             assetDir: clientInfo.assestDir,
-            sassIncludePath: clientInfo.common.sassIncludePath,
+            sassIncludePath: '',
             distDir: '',
             manifestDir: '',
             commonJSName: '',
@@ -250,7 +269,8 @@ const webpackUtil = {
                 pageName: path.dirname(relRoot.replace(srcRepStr, '').replace(opts.moduleName + path.sep, '').replace(clientInfo.module.pageDir, '')),
                 tplPath: relRoot,
                 publicPath: path.join(opts.publicPath, pagePath) + path.sep,
-                outputDist: path.join(opts.distDir, path.join(clientInfo.module.staticDir, pagePath)),
+                outputDist: path.join(opts.distDir,
+                    path.join(clientInfo.module.staticDir, pagePath)),
                 cleanView: path.join(clientInfo.module.viewsDir, pagePath),
                 cleanStatic: path.join(clientInfo.module.staticDir, pagePath),
                 viewPath: relRoot.replace(srcRepStr, clientInfo.module.viewsDir),
@@ -263,18 +283,22 @@ const webpackUtil = {
                 pageSource: res.tpl,
                 srcDir: opts.srcDir,
                 clientNodeModules: opts.clientNodeModules,
+                sassIncludePath: clientInfo[opts.moduleName === 'common' ? 'common' : 'base'].sassIncludePaths,
                 assetDir: opts.assetDir,
-                sassIncludePath: opts.sassIncludePath,
-                pageDist: path.join(opts.distDir, relRoot.replace(srcRepStr, clientInfo.module.viewsDir)),
+                pageDist: path.join(opts.distDir,
+                    relRoot.replace(srcRepStr, clientInfo.module.viewsDir)),
                 commonJSName: opts.commonJSName,
                 commonCssName: opts.commonCssName,
                 manifestDir: opts.manifestDir,
+                template: clientInfo[opts.moduleName === 'common' ? 'common' : 'base'].template,
             };
-
+            const cuCnfInfo = this.getCustomConfigModule(clientInfo, opts.moduleName);
+            finalConfig.modules = cuCnfInfo.module;
+            finalConfig.resolve = cuCnfInfo.resolve;
+            finalConfig.plugins = cuCnfInfo.plugins;
             if (jsEntryName) {
                 finalConfig.jsEntryName = jsEntryName;
             }
-
             if (jsPath) {
                 finalConfig.jsEntry = jsPath;
                 entrys.entry.push(finalConfig);
@@ -303,7 +327,7 @@ const webpackUtil = {
         }, options);
 
         if (!fs.existsSync(opts.widgetPath)) {
-            print.out('当前模块 不包含 widget 模块:', opts.widgetPath);
+            print.out('当前模块不包含widget模块:', opts.widgetPath);
             return entrys;
         }
         this.findPage(opts.widgetPath, (widget) => {

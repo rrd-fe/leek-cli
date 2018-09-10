@@ -10,6 +10,7 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
+        "import/no-dynamic-require": 0,
         "indent": [
             "error",
             4

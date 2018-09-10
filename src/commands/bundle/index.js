@@ -61,7 +61,7 @@ function checkEnv() {
     return true;
 }
 
-function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
+function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
     let isProd = false;
     if (cmdOpts.e === 'production' || cmdOpts.env === 'production') {
         isProd = true;
@@ -87,8 +87,9 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
     if (clientInfo.dll && clientInfo.dll.resolve) {
         resolveData = clientInfo.dll.resolve;
     }
-    const distVendor = path.join(distDir, clientInfo.vendorDir);
-    const publicPath = path.join(leekConfInfo.leekConfData.prefix, leekConfInfo.leekConfData.publicPath);
+    const distVendor = path.join(distDir, clientInfo.module.staticDir, clientInfo.vendorDir);
+    const publicPath = path.join(leekConfInfo.leekConfData.prefix,
+        leekConfInfo.leekConfData.publicPath);
     const sassIncludePath = clientInfo.dll.sassIncludePaths;
     const opts = {
         isProd,
@@ -98,11 +99,12 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, clientPkgInfo) {
         cssEntrys,
         resolve: resolveData,
         distVendor,
-        publicPath,
+        publicPath: path.join(publicPath, clientInfo.vendorDir),
         sassIncludePath,
         manifestConfDir: util.getManifestConfDir(leekConfInfo),
-        module: clientInfo.module,
-        plugins: clientInfo.plugins,
+        module: clientInfo.dll.module,
+        plugins: clientInfo.dll.plugins,
+        assetDir: clientInfo.assetsDir,
     };
 
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
@@ -152,11 +154,13 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
         isProd = true;
     }
 
-    if (opts.ic || opts.inlineCss) {
+    if (opts.i || opts.inlineCss) {
         inlineCss = true;
     }
 
-    const publicPath = path.join(leekConfInfo.leekConfData.prefix, leekConfInfo.leekConfData.publicPath);
+    const publicPath = path.join(leekConfInfo.leekConfData.prefix,
+        leekConfInfo.leekConfData.publicPath);
+
     const distDir = path.join(leekConfInfo.leekConfPath, leekConfInfo.leekConfData.dist);
 
     let tplInfo = null;
@@ -179,7 +183,7 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
             moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
             srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
             clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
-            assetDir: clientInfo.assestDir,
+            assetDir: clientInfo.assetsDir,
             sassIncludePath: clientInfo.common.sassIncludePaths,
             distDir,
             manifestDir: util.getManifestConfDir(leekConfInfo),
@@ -198,7 +202,7 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
             moduleDir: mInfo.moduleRoot, // 当前模块的路径 jsEntry是相对该目录的
             srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
             clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
-            assetDir: clientInfo.assestDir,
+            assetDir: clientInfo.assetsDir,
             sassIncludePath: clientInfo.common.sassIncludePaths,
             distDir,
             manifestDir: util.getManifestConfDir(leekConfInfo),
@@ -206,7 +210,6 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
             commonCssName: 'manifest-commonCss.json',
         }, clientInfo);
     }
-
     const widgetInfo = wpUtil.findWidet(leekConfInfo, {
         moduleName,
         isWatch,
@@ -221,7 +224,7 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
 
     moduleInfos.entry = moduleInfos.entry.concat(widgetInfo.entry);
     moduleInfos.noEntry = moduleInfos.noEntry.concat(widgetInfo.noEntry);
-
+    
     wpUtil.execBuildPage(moduleInfos, {
         moduleName,
         pageName,
@@ -247,7 +250,6 @@ function bundleSource(opts) {
 
     if (moduleName === 'all') {
         print.out('构建所有的模块');
-        return;
     }
 }
 
@@ -270,18 +272,30 @@ bundleCmd.addOption('env', new Option({
     name: 'environment',
     command: '-e, --env',
     description: '当前构建的环境',
-    actions: {
-        'e;env': {
-            action: (cmd) => {
-            },
-        },
-    },
 }));
 
 bundleCmd.addOption('watch', new Option({
     name: 'watch',
     command: '-w, --watch',
     description: '监控文件变化自动构建代码',
+}));
+
+bundleCmd.addOption('module', new Option({
+    name: 'module',
+    command: '-m, --module',
+    description: '打包的模块名',
+}));
+
+bundleCmd.addOption('page', new Option({
+    name: 'page',
+    command: '-p, --page',
+    description: '打包的页面名',
+}));
+
+bundleCmd.addOption('inlineCss', new Option({
+    name: 'inlineCss',
+    command: '-i, --inlineCss',
+    description: 'css样式是否打包为内联形式',
 }));
 
 bundleCmd.addSubCmd(allCmd);

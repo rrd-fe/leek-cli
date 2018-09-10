@@ -65,9 +65,7 @@ const util = require('../../utils/util');
 
 function askQuestion(v) {
     const astOpt = Object.assign({}, v);
-    return inquirer.prompt(astOpt).then((res) => {
-        return res;
-    });
+    return inquirer.prompt(astOpt).then(res => res);
 }
 
 const questionList = [
@@ -186,11 +184,15 @@ const initCmd = new Command({
             // print.out('配置完成', gloConfig);
             util.startLoading(conf.text.init.startGenConf);
             const leekConfig = path.resolve(process.cwd(), gloConfig.leekConfig);
-            const distPath = path.resolve(process.cwd(), gloConfig.dist);
-            // gloConfig.leekWebpackConfigDir = gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig);
-            const leekWebpackConfigDir = path.resolve(process.cwd(), gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig));
-            // gloConfig.leekManifsetDir = gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig);
-            const leekManifsetDir = path.resolve(process.cwd(), gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig));
+            // const distPath = path.resolve(process.cwd(), gloConfig.dist);
+            // gloConfig.leekWebpackConfigDir = gloConfig.
+            //    leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig);
+            const leekWebpackConfigDir = path.resolve(process.cwd(),
+                gloConfig.leekWebpackConfigDir.replace('{{leekConfig}}', leekConfig));
+            // gloConfig.leekManifsetDir = gloConfig.
+            //    leekManifsetDir.replace('{{leekConfig}}', leekConfig);
+            const leekManifsetDir = path.resolve(process.cwd(),
+                gloConfig.leekManifsetDir.replace('{{leekConfig}}', leekConfig));
 
             try {
                 if (isInitToServer(gloConfig)) {

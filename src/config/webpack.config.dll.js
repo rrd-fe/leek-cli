@@ -28,7 +28,7 @@ function getBaseConfig(isProd, isWatch) {
                     //     chunks: 'all',
                     // },
                     styles: {
-                        test: '\.css|\.sass|.scss$',
+                        test: /\.css|\.sass|.scss$/,
                         name: 'style',
                         chunks: 'all',
                         enforce: true,
@@ -39,7 +39,7 @@ function getBaseConfig(isProd, isWatch) {
                 new UglifyJsPlugin({
                     cache: true,
                     parallel: true,
-                    sourceMap: isProd ? false : true,
+                    sourceMap: !isProd,
                 }),
                 new OptimizeCSSAssetsPlugin({}),
             ],
@@ -47,7 +47,7 @@ function getBaseConfig(isProd, isWatch) {
     };
 }
 
-function getOutputConf(distDir) {
+function getOutputConf(distDir, publicPath) {
     if (!distDir) {
         return null;
     }
@@ -57,6 +57,7 @@ function getOutputConf(distDir) {
         filename: '[name]_[chunkhash].dll.js',
         library: '[name]_[chunkhash]',
         devtoolNamespace: 'dll_bundle',
+        publicPath,
     };
 }
 
@@ -103,7 +104,6 @@ function getModule(options, modules) {
         sassIncludePath: [],
         isProd: false,
     }, options);
-
     return {
         rules: [
             {
@@ -114,16 +114,11 @@ function getModule(options, modules) {
                         options: {
                             limit: 8192,
                             // context: path.resolve(__dirname, '../../dist/static/vendor'),
-                            context: path.resolve(opts.distVendor),
-                            name: () => {
-                                // 根据不同的env 生成不同的文件
-                                return '[name]-[md5:hash:base58:6].[ext]';
-                            },
-                            // outputPath: './assets/',
-                            // publicPath: '/jms/static/vendor/assets/',
-
-                            output: opts.assetDir,
-                            publicPath: opts.publicPath,
+                            context: opts.distVendor,
+                            // 根据不同的env 生成不同的文件
+                            name: () => '[name]-[md5:hash:base58:6].[ext]',
+                            outputPath: opts.assetDir,
+                            // publicPath: opts.publicPath,
                         },
                     },
                 ],
@@ -133,17 +128,12 @@ function getModule(options, modules) {
                 loader: 'file-loader',
                 options: {
                     // context: path.resolve(__dirname, '../../dist/static/vendor'),
-                    context: path.resolve(opts.distVendor),
-                    name: () => {
-                        // 根据不同的env 生成不同的文件
-                        return '[name]-[md5:hash:base58:6].[ext]';
-                    },
-                    // publicPath: '../../../',
-                    // outputPath: './assets/',
-                    // publicPath: '/jms/static/vendor/assets/',
-
-                    output: opts.assetDir,
-                    publicPath: opts.publicPath,
+                    context: opts.distVendor,
+                    // 根据不同的env 生成不同的文件
+                    name: () => '[name]-[md5:hash:base58:6].[ext]',
+                    // outputPath: path.resolve(opts.assetDir),
+                    outputPath: opts.assetDir,
+                    // publicPath: opts.publicPath,
                 },
             },
             {
@@ -154,10 +144,10 @@ function getModule(options, modules) {
                     {
                         loader: 'css-loader',
                         options: {
-                            sourceMap: !!opts.isProd ? false : true,
+                            sourceMap: !opts.isProd,
                             modules: false,
                             camelCase: true,
-                            minimize: !!opts.isProd ? true : false,
+                            minimize: opts.isProd,
                             localIdentName: '[name]__[local]--[hash:base64:5]',
                         },
                     },
@@ -165,14 +155,12 @@ function getModule(options, modules) {
                         loader: 'postcss-loader',
                         options: {
                             ident: 'postcss',
-                            plugins: (loader) => {
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                 ],
@@ -185,10 +173,10 @@ function getModule(options, modules) {
                     {
                         loader: 'css-loader',
                         options: {
-                            sourceMap: !!opts.isProd ? false : true,
+                            sourceMap: !opts.isProd,
                             modules: false,
                             camelCase: true,
-                            minimize: !!opts.isProd ? true : false,
+                            minimize: opts.isProd,
                             localIdentName: '[name]__[local]--[hash:base64:5]',
                         },
                     },
@@ -196,24 +184,19 @@ function getModule(options, modules) {
                         loader: 'postcss-loader',
                         options: {
                             ident: 'postcss',
-                            sourceMap: opts.isProd ? false : true,
-                            plugins: (loader) => {
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            sourceMap: !opts.isProd,
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                     {
                         loader: 'sass-loader',
                         options: {
-                            sourceMap: opts.isProd ? false : true,
-                            // includePaths: [
-                            //     path.resolve(__dirname, '../src/'),
-                            // ],
+                            sourceMap: !opts.isProd,
                             includePaths: opts.sassIncludePath,
                         },
                     },
@@ -230,7 +213,7 @@ function getModule(options, modules) {
                     {
                         loader: 'css-loader',
                         options: {
-                            sourceMap: opts.isProd ? false : true,
+                            sourceMap: !opts.isProd,
                             modules: true,
                             camelCase: true,
                         },
@@ -245,10 +228,10 @@ function getModule(options, modules) {
                     {
                         loader: 'css-loader',
                         options: {
-                            sourceMap: !!opts.isProd ? false : true,
+                            sourceMap: !opts.isProd,
                             modules: true,
                             camelCase: true,
-                            minimize: !!opts.isProd ? true : false,
+                            minimize: opts.isProd,
                             localIdentName: '[name]__[local]--[hash:base64:5]',
                         },
                     },
@@ -256,24 +239,19 @@ function getModule(options, modules) {
                         loader: 'postcss-loader',
                         options: {
                             ident: 'postcss',
-                            sourceMap: opts.isProd ? false : true,
-                            plugins: (loader) => { 
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            sourceMap: !opts.isProd,
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                     {
                         loader: 'sass-loader',
                         options: {
-                            sourceMap: opts.isProd ? false : true,
-                            // includePaths: [
-                            //     path.resolve(__dirname, '../src/'),
-                            // ],
+                            sourceMap: !opts.isProd,
                             includePaths: opts.includePaths,
                         },
                     },
@@ -303,6 +281,7 @@ function getPlugin(options, plugins) {
             // root: path.resolve(__dirname, '../../'),
             root: opts.distDir,
             verbose: false,
+            watch: true,
         }),
         new webpack.DllPlugin({
             path: path.join(opts.manifestConfDir, 'manifest-[name].json'),
@@ -318,15 +297,10 @@ function getPlugin(options, plugins) {
         }),
         new ManifestPlugin({
             writeToFileEmit: true,
-            // publicPath: '/jms/static/vendor/',
-            // fileName: 'dll-assets-manifest.json',
             publicPath: opts.publicPath,
             fileName: 'dll-assets-manifest.json',
-            generate: (seed, files) => {
-                return files.reduce((manifest, file) => {
-                    return Object.assign({}, manifest, { [file.path]: file.name });
-                }, seed);
-            },
+            generate: (seed, files) => files.reduce((manifest, file) => Object.assign({},
+                manifest, { [file.path]: file.name }), seed),
         }),
     ];
 }
@@ -340,12 +314,10 @@ module.exports = {
             isProd: false,
             isWatch: false,
         }, options);
-
         const baseConf = getBaseConfig(opts.isProd, options.isWatch);
-        baseConf.output = getOutputConf(opts.distVendor);
+        baseConf.output = getOutputConf(opts.distVendor, opts.publicPath);
         baseConf.entry = getEntry(opts.jsEntrys, opts.cssEntrys);
         baseConf.resolve = getResolve(opts.resolve);
-
         baseConf.module = getModule({
             distVendor: opts.distVendor,
             assetDir: opts.assetDir,
@@ -360,7 +332,6 @@ module.exports = {
             manifestConfDir: opts.manifestConfDir,
             publicPath: opts.publicPath,
         }, opts.plugins);
-
         return baseConf;
     },
 };

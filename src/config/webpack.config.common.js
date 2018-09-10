@@ -1,4 +1,7 @@
 
+/* eslint global-require: "error" */
+
+
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -19,26 +22,15 @@ function getBaseConfig(options) {
 
     return {
         mode: opts.isProd ? 'production' : 'development',
-        // context: path.resolve(__dirname, '../src/common/'),
         context: opts.moduleDir,
         devtool: opts.isProd ? false : 'cheap-module-source-map', // 开发模式下
-        entry: {
-            // 'chinanet': './page/chinanet/chinanet.js',
-            // 'chinanetCss': './page/chinanet/chinanet.scss',
-        },
-        output: {
-            // path: path.resolve(__dirname, '../../../../dist/', pagePath), //打包后的文件存放的地方
-            // filename: "[id]-[chunkhash:6].js", //打包后输出文件的文件名
-            // publicPath: publicPath,
-        },
+        entry: {},
+        output: {},
         optimization: {
-            // runtimeChunk:{
-            //     name: 'manifeset.json',
-            // },
             splitChunks: {
                 cacheGroups: {
                     styles: {
-                        test: '\.css|\.sass|.scss$',
+                        test: /\.css|\.sass|.scss$/,
                         name: 'style',
                         chunks: 'all',
                         enforce: true,
@@ -54,16 +46,7 @@ function getBaseConfig(options) {
                 new OptimizeCSSAssetsPlugin({}),
             ],
         },
-        resolve: {
-            // // 优先搜索当前src 目录，其次搜索node modules
-            // modules: [path.resolve(__dirname, '../src/'), 'node_modules'],
-            // alias: {
-            //     // Common: path.resolve(__dirname, '../../common/'),
-            //     // jquery$: path.resolve(__dirname, '../src/common/static/js/lib/jquery/jquery.js'), // 全局配置jquery
-            //     // jquery$: path.resolve(__dirname, '../../common/static/js/lib/jquery/jquery.js'), // 全局配置jquery
-            // },
-            // extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
-        },
+        resolve: {},
         module: {},
         plugins: [],
     };
@@ -89,6 +72,9 @@ function formatPlugin(options, plugins) {
         manifestDir: '',
     }, options);
 
+    const commonJSPath = path.join(opts.manifestDir, opts.commonJSName);
+    const commonCssPath = path.join(opts.manifestDir, opts.commonCssName);
+
     // pageList, cleanStatic, cleanView, incss
     return [
         new CleanWebpackPlugin([
@@ -98,23 +84,17 @@ function formatPlugin(options, plugins) {
             root: opts.distDir,
             beforeEmit: true,
             verbose: false,
-        }),
-        // new HappyPack({
-        //     id: 'happybabel',
-        //     loaders: ['babel-loader?cacheDirectory=true'],
-        //     threadPool: happyThreadPool,
-        //     cache: true,
-        //     verbose: true,
-        // }),
-        new webpack.DllReferencePlugin({
-            // context: __dirname,
-            context: opts.manifestDir,
-            manifest: require(path.join(opts.manifestDir, opts.commonJSName)),
+            watch: true,
         }),
         new webpack.DllReferencePlugin({
             // context: __dirname,
             context: opts.manifestDir,
-            manifest: require(path.join(opts.manifestDir, opts.commonCssName)),
+            manifest: require(commonJSPath), // eslint-disable-line global-require
+        }),
+        new webpack.DllReferencePlugin({
+            // context: __dirname,
+            context: opts.manifestDir,
+            manifest: require(commonCssPath), // eslint-disable-line global-require
         }),
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output
@@ -176,7 +156,6 @@ function getModule(options, modules) {
         isProd: false,
         pageDir: '',
     }, options);
-
     return {
         rules: [
             {
@@ -214,14 +193,12 @@ function getModule(options, modules) {
                         loader: 'postcss-loader',
                         options: {
                             ident: 'postcss',
-                            plugins: () => {
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                 ],
@@ -246,14 +223,12 @@ function getModule(options, modules) {
                         options: {
                             ident: 'postcss',
                             sourceMap: !opts.isProd,
-                            plugins: (loader) => {
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                     {
@@ -302,14 +277,12 @@ function getModule(options, modules) {
                         options: {
                             ident: 'postcss',
                             sourceMap: !opts.isProd,
-                            plugins: (loader) => {
-                                return [
-                                    // require('postcss-import')({ root: loader.resourcePath }),
-                                    // require('postcss-cssnext')(),
-                                    require('autoprefixer')(),
-                                    // require('cssnano')()
-                                ];
-                            },
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
                         },
                     },
                     {
@@ -330,10 +303,8 @@ function getModule(options, modules) {
                             limit: 8192,
                             // context: path.resolve(__dirname, '../../../../'),
                             context: opts.pageDir,
-                            name: () => {
-                                // 根据不同的env 生成不同的文件
-                                return '[name]-[md5:hash:base58:6].[ext]';
-                            },
+                            // 根据不同的env 生成不同的文件
+                            name: () => '[name]-[md5:hash:base58:6].[ext]',
                             // publicPath: '../../../',
                             // outputPath: './assets/',
                             outputPath: opts.assetDir,
@@ -348,10 +319,7 @@ function getModule(options, modules) {
                 options: {
                     // context: path.resolve(__dirname, '../../../../'), // static/
                     context: opts.pageDir,
-                    name: (file) => {
-                        // 根据不同的env 生成不同的文件
-                        return '[name]-[md5:hash:base58:6].[ext]';
-                    },
+                    name: () => '[name]-[md5:hash:base58:6].[ext]',
                     outputPath: opts.assetDir,
                 },
             },
@@ -381,7 +349,6 @@ function getResolve(options, resolve) {
 
 module.exports = {
     getConfig(params) {
-        const tplPath = params.tplPath || '';
         const publicPath = params.publicPath || '';
         const jsEntry = params.jsEntry || '';
         const jsEntryName = params.jsEntryName || '';

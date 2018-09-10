@@ -6,13 +6,13 @@ module.exports = {
     // 获取server
     getServerPackage(leekConf) {
         if (!leekConf) {
-            return;
+            return null;
         }
         return util.getPckageInfo(leekConf.leekServerDir);
     },
     getClientPackage(leekConf) {
         if (!leekConf) {
-            return;
+            return null;
         }
         return util.getPckageInfo(leekConf.leekClientDir);
     },

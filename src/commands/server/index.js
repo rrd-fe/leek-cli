@@ -94,6 +94,7 @@ function checkEnv() {
     if (!serverPgkInfo) {
         return false;
     }
+    return true;
 }
 
 function buildServer() {

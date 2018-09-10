@@ -296,6 +296,7 @@ function startLoading(info) {
 function stopLoading(info) {
     if (gloSpinner) {
         gloSpinner.stop();
+        gloSpinner = null;
     }
     print.out(info);
 }
