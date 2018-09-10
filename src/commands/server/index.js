@@ -32,8 +32,8 @@ function processWatch(v, leekConf, serverConf) {
         return;
     }
     if (v.indexOf('#') > -1) {
-        v = v.replace('#', '');
-        watchListFile.push(path.join(leekConf.leekConfPath, serverConf.relPath, v));
+        const vd = v.replace('#', '');
+        watchListFile.push(path.join(leekConf.leekConfPath, serverConf.relPath, vd));
     } else {
         const sourcePath = path.join(leekConf.leekConfPath, serverConf.relPath, v);
         try {
@@ -45,10 +45,7 @@ function processWatch(v, leekConf, serverConf) {
             print.red(conf.text.server.build.notFoundBuildSource, e);
         }
     }
-
-    watchListFile = watchListFile.filter((item, pos) => {
-        return watchListFile.indexOf(item) === pos;
-    });
+    watchListFile = watchListFile.filter((item, pos) => watchListFile.indexOf(item) === pos);
 }
 
 // 获取配置信息
@@ -128,12 +125,13 @@ function buildServer() {
             if (v) {
                 // todofixed: remove
                 // print.out(serverBuildInfo);
-
                 processWatch(v, leekConfInfo, serverBuildInfo);
+                let dv = '';
                 if (v.indexOf('#') > -1) {
-                    v = v.replace('#', '*');
+                    dv = v.replace('#', '*');
                 }
-                const sourcePath = path.join(leekConfInfo.leekConfPath, serverBuildInfo.relPath, v);
+                const sourcePath = path.join(leekConfInfo.leekConfPath,
+                    serverBuildInfo.relPath, dv);
                 const distPath = path.join(leekConfInfo.leekConfPath,
                     leekConfInfo.leekConfData.dist);
                 try {
@@ -201,7 +199,7 @@ function startWatch() {
     print.out(conf.text.server.build.startWatch);
     if (watchListFile.length > 0) {
         const watcher = chokidar.watch(watchListFile, {
-            ignored: /(^|[\/\\])\../,
+            ignored: /(^|[/\\])\../,
         });
         watcher
             .on('ready', () => {
@@ -301,7 +299,7 @@ buildCmd.addOption('env', new Option({
     description: '当前构建的环境',
     actions: {
         'e;env': {
-            action: (cmd) => {
+            action: () => {
                 print.out('构建环境暂未支持...');
             },
         },

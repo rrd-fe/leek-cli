@@ -178,7 +178,6 @@ const webpackUtil = {
             return;
         }
         const config = webpackConfigs.entry.shift();
-        
         const configModule = this.getWebpackConfInfo(leekConfInfo,
             bundleInfo.moduleName, config.pageName);
         if (!configModule) {

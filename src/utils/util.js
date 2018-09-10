@@ -25,7 +25,7 @@ const tmpDir = `${process.env.HOME}/.grnTemp/`;
 
 // 该命令行必须在项目根目录运行
 function getPckageInfo(dir) {
-    const packagePath = path.join(dir ? dir : pwd, '/package.json');
+    const packagePath = path.join(dir || pwd, '/package.json');
     if (!fs.existsSync(packagePath)) {
         // print.red('package.json文件不存在，请在项目根目录下运行');
         return null;
@@ -80,9 +80,9 @@ function getConfigPath(dir) {
 
 // 获取配置文件
 function getLeekConfig(cPath) {
-    const confPath = cPath ? cPath : getConfigPath();
+    const confPath = cPath || getConfigPath();
     try {
-        const confModule = require(cPath);
+        const confModule = require(cPath); // eslint-disable-line global-require
         return confModule;
     } catch (e) {
         print.red(`读取配置文件失败: ${confPath}`);
@@ -353,17 +353,17 @@ function findLeekConf(source) {
     return null;
 }
 
-function currentRunServerDir(leekConf) {
-    if (!leekConf) {
-        return;
+function currentRunServerDir(leekConfOpts) {
+    if (!leekConfOpts) {
+        return null;
     }
+    const leekConf = Object.assign({}, leekConfOpts);
     const dirs = leekConf.currentRun.split(path.sep);
     if (dirs[dirs.length - 1].indexOf(leekConf.leekConfData.clientAlias) > -1) {
         leekConf.isExecInServer = false;
     } else {
         leekConf.isExecInServer = true;
     }
-
     if (leekConf.isExecInServer) {
         leekConf.leekServerDir = leekConf.currentRun;
         leekConf.leekClientDir = path.join(leekConf.currentRun, leekConf.leekConfData.clientAlias);

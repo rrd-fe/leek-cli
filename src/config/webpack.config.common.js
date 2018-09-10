@@ -10,6 +10,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackIncludeAssetsPlugin = require('rrd-html-webpack-include-assets-plugin');
+const HtmlWebpackPlaceHolderPlugin = require('html-webpack-place-holder-plugin');
 
 function getBaseConfig(options) {
     if (!options) {
@@ -52,6 +53,45 @@ function getBaseConfig(options) {
     };
 }
 
+
+function getTemplate(isInlineCss, template) {
+    if (typeof template === 'function') {
+        return template(isInlineCss);
+    }
+    if (template) {
+        return template;
+    }
+    if (isInlineCss) {
+        return `
+<% for (var css in assets.css) { %>
+    <% if(assets.rawData[assets.css[css].substr(publicPath.length)]) {%>
+    <style>
+        <%= assets.rawData[assets.css[css].substr(publicPath.length)].source %>
+    </style>
+    <% } %>
+<% } %>
+<% for (var css in assets.css) { %>
+    <% if( sourceAssets[assets.css[css].substr(publicPath.length)]) {%>
+    <style>
+        <%= sourceAssets[assets.css[css].substr(publicPath.length)].source() %>
+    </style>
+    <% } %>
+<% } %>
+
+<% for (var file in assets.js) { %>
+    <script src="<%= assets.js[file] %>"></script>
+<% } %>`;
+    }
+    return `
+<% for (var css in assets.css) { %>
+    <link href="<%= assets.css[css] %>" rel="stylesheet">
+<% } %>
+
+<% for (var file in assets.js) { %>
+    <script src="<%= assets.js[file] %>"></script>
+<% } %>`;
+}
+
 function formatPlugin(options, plugins) {
     if (Array.isArray(plugins) && plugins.length > 0) {
         return plugins;
@@ -60,7 +100,7 @@ function formatPlugin(options, plugins) {
         return null;
     }
     const opts = Object.assign({}, {
-        incss: '',
+        incss: false,
         distVendor: '',
         distDir: '',
         publicPath: '',
@@ -109,7 +149,7 @@ function formatPlugin(options, plugins) {
             minify: true,
             // xhtml: true,
             inject: false,
-            notUsePlaceHolder: true,
+            notUsePlaceHolder: false,
             isInlineCss: opts.incss,
             // isPreprocess: true,
         }),
@@ -130,6 +170,9 @@ function formatPlugin(options, plugins) {
             ],
             append: false,
             includeData: '',
+        }),
+        new HtmlWebpackPlaceHolderPlugin({
+            content: getTemplate(opts.incss, opts.template),
         }),
     ];
 }
@@ -354,7 +397,6 @@ module.exports = {
         const jsEntryName = params.jsEntryName || '';
         const cleanStatic = params.cleanStatic || '';
         const cleanView = params.cleanView || '';
-        const incss = params.isInlineCss;
         const prod = params.isProd;
         const baseConfig = getBaseConfig({
             isProd: prod,
@@ -391,7 +433,7 @@ module.exports = {
         baseConfig.plugins = formatPlugin({
             cleanStatic,
             cleanView,
-            incss,
+            incss: params.incss,
             pageSource: params.pageSource,
             pageDist: params.pageDist,
             distVendor: params.distVendor,
@@ -400,6 +442,7 @@ module.exports = {
             commonJSName: params.commonJSName,
             commonCssName: params.commonJSName,
             manifestDir: params.manifestDir,
+            template: params.template,
         }, params.plugins);
         baseConfig.watch = params.watch;
         return baseConfig;

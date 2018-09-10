@@ -224,7 +224,7 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
 
     moduleInfos.entry = moduleInfos.entry.concat(widgetInfo.entry);
     moduleInfos.noEntry = moduleInfos.noEntry.concat(widgetInfo.noEntry);
-    
+
     wpUtil.execBuildPage(moduleInfos, {
         moduleName,
         pageName,

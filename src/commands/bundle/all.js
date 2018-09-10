@@ -15,7 +15,12 @@ const Command = require('../../base/Command');
 const Option = require('../../base/Option');
 
 function bundleAllModule() {
+    // bundle dll
 
+    // bundle common
+
+    // bundle other module
+    
 }
 
 const bundleAll = new Command({

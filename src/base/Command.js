@@ -165,7 +165,9 @@ class Command {
                 v.split(';').forEach((sv) => {
                     if (sv) {
                         this.addOptionAction(sv, (...args) => {
-                            opt.actions[v] && opt.actions[v].action && opt.actions[v].action(...args);
+                            if (opt.actions[v] && opt.actions[v].actio) {
+                                opt.actions[v].action(...args);
+                            }
                         });
                     }
                 });

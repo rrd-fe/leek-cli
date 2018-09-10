@@ -7,8 +7,8 @@
 * @Last modified time: 2017-03-30
 */
 
-const conf = require('../config/conf');
 const gradient = require('gradient-string');
+const conf = require('../config/conf');
 
 const print = require('./print');
 const pkg = require('../../package.json');
