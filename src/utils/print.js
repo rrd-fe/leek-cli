@@ -29,9 +29,22 @@ function red(msg) {
     out(chalk.red(msg));
 }
 
+function green(msg) {
+    out(chalk.green(msg));
+}
+
+function currentTime(before) {
+    if (before) {
+        green(process.uptime(before));
+    } else {
+        green(process.uptime());
+    }
+}
+
 module.exports = {
     info,
     out,
     red,
     yellow,
+    currentTime,
 };

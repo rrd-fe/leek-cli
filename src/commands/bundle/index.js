@@ -10,7 +10,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 const _ = require('lodash');
 
 const allCmd = require('./all');
@@ -111,6 +110,8 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
     const dllWpConf = dllConf.getConfig(opts);
     process.chdir(leekConfInfo.leekConfDir);
     util.startLoading('开始进行webpack编译');
+
+    const webpack = require('webpack'); // eslint-disable-line global-require
     webpack(dllWpConf, (err, stats) => {
         const info = stats.toJson();
         util.stopLoading('编译结束');
