@@ -28,6 +28,7 @@ function getBaseConfig(options) {
         entry: {},
         output: {},
         optimization: {
+            nodeEnv: opts.isProd ? 'production' : 'development',
             splitChunks: {
                 cacheGroups: {
                     styles: {
@@ -226,6 +227,18 @@ function getModule(options, modules) {
                     },
                 ],
             },
+            // 优化 svg
+            // {
+            //     test: /\.svg$/,
+            //     loader: 'svg-url-loader',
+            //     options: {
+            //         // Inline files smaller than 10 kB (10240 bytes)
+            //         limit: 10 * 1024,
+            //         // Remove the quotes from the url
+            //         // (they’re unnecessary in most cases)
+            //         noquotes: true,
+            //     },
+            // },
             {
                 test: /\.(png|jpg|gif|webp)$/,
                 use: [

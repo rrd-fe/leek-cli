@@ -11,6 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
+const fse = require('fs-extra');
+const chokidar = require('chokidar');
 
 const allCmd = require('./all');
 const util = require('../../utils/util');
@@ -132,6 +134,34 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
     });
 }
 
+function watchNoEntryTpl() {
+    const watcher = chokidar.watch(watchListFile, {
+        ignored: /(^|[/\\])\../,
+    });
+    watcher
+        .on('ready', () => {
+            // todoFixed: rmove
+            // console.log('watch启动完成');
+            print.out('没有入口的文件watch 准备完成...');
+            watcher
+                .on('change', (filePath) => {
+                    // copy file
+
+                })
+                .on('unlink', (wPath) => {
+                    // delete dist file
+
+                })
+                .on('unlinkDir', (wPath) => {
+                    // delete dist file
+
+                })
+                .on('error', (err) => {
+                    print.red('watch error:', err);
+                });
+        });
+}
+
 function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
     const moduleInfos = {
         entry: [],
@@ -230,7 +260,8 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
         moduleName,
         pageName,
     }, leekConfInfo);
-    wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
+    const watchLists = wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
+
 }
 
 function bundleSource(opts) {

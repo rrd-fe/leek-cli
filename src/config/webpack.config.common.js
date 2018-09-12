@@ -28,6 +28,7 @@ function getBaseConfig(options) {
         entry: {},
         output: {},
         optimization: {
+            nodeEnv: opts.isProd ? 'production' : 'development',
             splitChunks: {
                 cacheGroups: {
                     styles: {

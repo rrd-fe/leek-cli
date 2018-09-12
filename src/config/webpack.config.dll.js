@@ -20,6 +20,7 @@ function getBaseConfig(isProd, isWatch) {
         devtool: isProd ? false : 'cheap-module-source-map',
         watch: !!isWatch,
         optimization: {
+            nodeEnv: isProd ? 'production' : 'development',
             splitChunks: {
                 cacheGroups: {
                     // vendors: {

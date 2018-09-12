@@ -20,7 +20,8 @@ function bundleAllModule() {
     // bundle common
 
     // bundle other module
-    
+
+    print.out('该命令目前暂未实现');
 }
 
 const bundleAll = new Command({
