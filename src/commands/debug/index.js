@@ -8,7 +8,6 @@
 */
 
 const Command = require('../../base/Command');
-const Option = require('../../base/Option');
 
 const print = require('../../utils/print');
 

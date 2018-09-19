@@ -71,6 +71,15 @@ function getTemplate(isInlineCss, template) {
     </style>
     <% } %>
 <% } %>
+
+<% for (var css in htmlWebpackPlugin.files.css) { %>
+    <% if(htmlWebpackPlugin.files.rawData[htmlWebpackPlugin.files.css[css].substr(htmlWebpackPlugin.files.publicPath.length)]) {%>
+    <style>
+        <%= htmlWebpackPlugin.files.rawData[htmlWebpackPlugin.files.css[css].substr(htmlWebpackPlugin.files.publicPath.length)].source %>
+    </style>
+    <% } %>
+<% } %>
+
 <% for (var css in assets.css) { %>
     <% if( sourceAssets[assets.css[css].substr(publicPath.length)]) {%>
     <style>
