@@ -45,6 +45,11 @@ function getBaseConfig(isProd, isWatch) {
                 new OptimizeCSSAssetsPlugin({}),
             ],
         },
+        resolveLoader: {
+            modules: [
+                path.join(__dirname, '../../node_modules'),
+            ],
+        },
     };
 }
 
@@ -62,11 +67,20 @@ function getOutputConf(distDir, publicPath) {
     };
 }
 
-function getResolve(resolveObj) {
-    return Object.assign({}, {
-        alias: {
-        },
+function getResolve(resolveObj, srcDir, clientNodeModules) {
+    const resolveRes = Object.assign({}, {
+        modules: [path.resolve(__dirname, '../../node_modules')],
+        alias: {},
+        extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
+        unsafeCache: true,
     }, resolveObj);
+    if (srcDir) {
+        resolveRes.modules.push(srcDir);
+    }
+    if (clientNodeModules) {
+        resolveRes.modules.push(clientNodeModules);
+    }
+    return resolveRes;
 }
 
 function getEntry(jsEntrys, cssEntrys) {
@@ -318,7 +332,7 @@ module.exports = {
         const baseConf = getBaseConfig(opts.isProd, options.isWatch);
         baseConf.output = getOutputConf(opts.distVendor, opts.publicPath);
         baseConf.entry = getEntry(opts.jsEntrys, opts.cssEntrys);
-        baseConf.resolve = getResolve(opts.resolve);
+        baseConf.resolve = getResolve(opts.resolve, opts.srcDir, opts.clientNodeModules);
         baseConf.module = getModule({
             distVendor: opts.distVendor,
             assetDir: opts.assetDir,

@@ -85,6 +85,8 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
         cssEntrys,
         resolve: resolveData,
         distVendor,
+        srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir), // 项目的源代码目录
+        clientNodeModules: path.join(leekConfInfo.leekClientDir, './node_modules'),
         publicPath: path.join(publicPath, clientInfo.vendorDir),
         sassIncludePath,
         manifestConfDir: util.getManifestConfDir(leekConfInfo),
@@ -95,7 +97,7 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
 
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
     const dllWpConf = dllConf.getConfig(opts);
-    process.chdir(leekConfInfo.leekConfDir);
+    process.chdir(leekConfInfo.leekClientDir);
     util.startLoading('开始进行webpack编译');
 
     const webpack = require('webpack'); // eslint-disable-line global-require
@@ -134,10 +136,6 @@ function watchNoEntryTpl(watchListFile) {
 
                 })
                 .on('unlink', (wPath) => {
-                    // delete dist file
-
-                })
-                .on('unlinkDir', (wPath) => {
                     // delete dist file
 
                 })
@@ -246,7 +244,8 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
         pageName,
     }, leekConfInfo);
     const watchLists = wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
-    
+    console.log('watch List：：：：', watchLists);
+    // watchNoEntryTpl(watchLists);
 }
 
 function bundleSource(opts) {

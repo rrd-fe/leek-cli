@@ -51,6 +51,11 @@ function getBaseConfig(options) {
         resolve: {},
         module: {},
         plugins: [],
+        resolveLoader: {
+            modules: [
+                path.join(__dirname, '../../node_modules'),
+            ],
+        },
     };
 }
 
@@ -100,11 +105,11 @@ function getModule(options, modules) {
                     loader: 'babel-loader',
                     options: {
                         cacheDirectory: true,
-                        presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
+                        presets: [[require('@babel/preset-env'), { modules: false }], require('@babel/preset-react')], // eslint-disable-line global-require
                         plugins: [
-                            'syntax-dynamic-import',
-                            ['@babel/plugin-proposal-decorators', { legacy: true }],
-                            ['@babel/plugin-proposal-class-properties', { loose: true }],
+                            require('babel-plugin-syntax-dynamic-import'), // eslint-disable-line global-require
+                            [require('@babel/plugin-proposal-decorators'), { legacy: true }], // eslint-disable-line global-require
+                            [require('@babel/plugin-proposal-class-properties'), { loose: true }], // eslint-disable-line global-require
                         ],
                     },
                 },
