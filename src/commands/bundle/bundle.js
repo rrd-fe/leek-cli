@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
-const chokidar = require('chokidar');
 
 const util = require('../../utils/util');
 const print = require('../../utils/print');
@@ -121,30 +120,6 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
     });
 }
 
-function watchNoEntryTpl(watchListFile) {
-    const watcher = chokidar.watch(watchListFile, {
-        ignored: /(^|[/\\])\../,
-    });
-    watcher
-        .on('ready', () => {
-            // todoFixed: rmove
-            // console.log('watch启动完成');
-            print.out('没有入口的文件watch 准备完成...');
-            watcher
-                .on('change', (filePath) => {
-                    // copy file
-
-                })
-                .on('unlink', (wPath) => {
-                    // delete dist file
-
-                })
-                .on('error', (err) => {
-                    print.red('watch error:', err);
-                });
-        });
-}
-
 function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
     const moduleInfos = {
         entry: [],
@@ -243,9 +218,12 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
         moduleName,
         pageName,
     }, leekConfInfo);
+
     const watchLists = wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
-    console.log('watch List：：：：', watchLists);
-    // watchNoEntryTpl(watchLists);
+    wpUtil.watchNoEntryTpl(watchLists, {
+        distDir: path.join(distDir, clientInfo.module.viewsDir),
+        srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir),
+    });
 }
 
 function bundleSource(opts) {

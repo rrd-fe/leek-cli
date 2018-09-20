@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const fse = require('fs-extra');
+const chokidar = require('chokidar');
 const webpack = require('webpack');
 
 const print = require('./print');
@@ -344,6 +345,41 @@ const webpackUtil = {
             });
         });
         return entrys;
+    },
+    watchNoEntryTpl(watchListFile, dirInfo) {
+        const watcher = chokidar.watch(watchListFile, {
+            ignored: /(^|[/\\])\../,
+        });
+
+        watcher
+            .on('ready', () => {
+                // todoFixed: rmove
+                // console.log('watch启动完成');
+                // print.out('没有入口的文件watch 准备完成...');
+                watcher
+                    .on('change', (filePath) => {
+                        const relFile = filePath.replace(dirInfo.srcDir, '');
+                        const distFile = path.join(dirInfo.distDir, relFile);
+                        // copy file
+                        if (fs.existsSync(distFile)) {
+                            fse.removeSync(distFile);
+                        }
+                        if (filePath) {
+                            fse.copySync(filePath, distFile);
+                        }
+                        print.out('编译完成: ', relFile);
+                    })
+                    .on('unlink', (wPath) => {
+                        // delete dist file
+                        const relFile = wPath.replace(dirInfo.srcDir, '');
+                        const distFile = path.join(dirInfo.distDir, relFile);
+                        fse.removeSync(distFile);
+                        print.out('编译完成: ', relFile);
+                    })
+                    .on('error', (err) => {
+                        print.red('watch error:', err);
+                    });
+            });
     },
 };
 
