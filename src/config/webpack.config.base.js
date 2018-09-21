@@ -344,7 +344,7 @@ function formatPlugin(options, plugins) {
             root: opts.distDir,
             beforeEmit: true,
             verbose: false,
-            watch: true,
+            watch: false,
         }),
         new webpack.DllReferencePlugin({
             // context: __dirname,
