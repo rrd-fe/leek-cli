@@ -125,6 +125,7 @@ function formatPlugin(options, plugins) {
         commonJSName: '',
         commonCssName: '',
         manifestDir: '',
+        isProd: false,
     }, options);
 
     const commonJSPath = path.join(opts.manifestDir, opts.commonJSName);
@@ -154,8 +155,8 @@ function formatPlugin(options, plugins) {
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output
             // both options are optional
-            filename: '[name]-[hash:6].css',
-            chunkFilename: '[id]-[hash:6].css',
+            filename: opts.isProd ? '[name]-[hash:6].css' : '[name].css',
+            chunkFilename: opts.isProd ? '[id]-[hash:6].css' : '[id].css',
         }),
         new HtmlWebpackPlugin({
             filename: opts.pageDist,
@@ -192,10 +193,10 @@ function formatPlugin(options, plugins) {
     ];
 }
 
-function getOutput(pageDist, publicPath) {
+function getOutput(isProd, pageDist, publicPath) {
     return {
         path: pageDist, // 打包后的文件存放的地方
-        filename: '[id]-[chunkhash:6].js', // 打包后输出文件的文件名
+        filename: isProd ? '[id]-[chunkhash:6].js' : '[id].js', // 打包后输出文件的文件名
         publicPath,
     };
 }
@@ -362,7 +363,7 @@ function getModule(options, modules) {
                             // context: path.resolve(__dirname, '../../../../'),
                             context: opts.pageDir,
                             // 根据不同的env 生成不同的文件
-                            name: () => '[name]-[md5:hash:base58:6].[ext]',
+                            name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
                             // publicPath: '../../../',
                             // outputPath: './assets/',
                             outputPath: opts.assetDir,
@@ -377,7 +378,7 @@ function getModule(options, modules) {
                 options: {
                     // context: path.resolve(__dirname, '../../../../'), // static/
                     context: opts.pageDir,
-                    name: () => '[name]-[md5:hash:base58:6].[ext]',
+                    name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
                     outputPath: opts.assetDir,
                 },
             },
@@ -424,7 +425,7 @@ module.exports = {
             baseConfig.entry = null;
         }
 
-        baseConfig.output = getOutput(params.outputDist, publicPath);
+        baseConfig.output = getOutput(prod, params.outputDist, publicPath);
 
         const resolveFinal = getResolve({
             srcDir: params.srcDir,
@@ -458,6 +459,7 @@ module.exports = {
             commonCssName: params.commonJSName,
             manifestDir: params.manifestDir,
             template: params.template,
+            isProd: prod,
         }, params.plugins);
         baseConfig.watch = params.watch;
         return baseConfig;

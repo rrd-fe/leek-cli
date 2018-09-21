@@ -5,7 +5,7 @@
     "leek": "bin/index.js"
   },
   "description": "leek 命令行",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "directories": {
     "test": "test"
   },
