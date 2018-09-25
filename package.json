@@ -15,7 +15,8 @@
     "debug": "./node_modules/babel-node-debug/bin/bode-debug.js ./bin/index.js",
     "build": "./scripts/npm-build.js",
     "install-from-local": "./scripts/npm-install.js",
-    "publish-to-npm": "./scripts/npm-publish.js"
+    "publish-to-npm": "./scripts/npm-publish.js",
+    "lint": "./node_modules/eslint/bin/eslint.js ."
   },
   "repository": {
     "type": "git",
