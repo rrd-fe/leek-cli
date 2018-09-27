@@ -246,7 +246,8 @@ function getModule(options, modules) {
                     plugins: [
                         // fixed css module bug
                         // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
-                        require('@babel/plugin-transform-modules-commonjs'), // eslint-disable-line global-require
+                        // require('@babel/plugin-transform-modules-commonjs'),
+                        // eslint-disable-line global-require
                         require('babel-plugin-syntax-dynamic-import'), // eslint-disable-line global-require
                         [require('@babel/plugin-proposal-decorators'), { legacy: true }], // eslint-disable-line global-require
                         [require('@babel/plugin-proposal-class-properties'), { loose: true }], // eslint-disable-line global-require
