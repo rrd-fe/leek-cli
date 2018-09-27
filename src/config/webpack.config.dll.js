@@ -21,6 +21,9 @@ function getBaseConfig(isProd, isWatch) {
         watch: !!isWatch,
         optimization: {
             nodeEnv: isProd ? 'production' : 'development',
+            // runtimeChunk: {
+            //     name: 'dll-runtime-manifest',
+            // },
             splitChunks: {
                 cacheGroups: {
                     // vendors: {
@@ -36,6 +39,7 @@ function getBaseConfig(isProd, isWatch) {
                     },
                 },
             },
+            namedModules: true, // fixed: 命名冲突bug
             minimizer: [
                 new UglifyJsPlugin({
                     cache: true,
@@ -53,15 +57,15 @@ function getBaseConfig(isProd, isWatch) {
     };
 }
 
-function getOutputConf(distDir, publicPath) {
+function getOutputConf(isProd, distDir, publicPath) {
     if (!distDir) {
         return null;
     }
     return {
         // path: path.resolve(__dirname, '../../dist/static/vendor/'),
         path: path.resolve(distDir),
-        filename: '[name]_[chunkhash].dll.js',
-        library: '[name]_[chunkhash]',
+        filename: isProd ? '[name]_[chunkhash].dll.js' : '[name].dll.js',
+        library: isProd ? '[name]_[chunkhash]' : '[name]',
         devtoolNamespace: 'dll_bundle',
         publicPath,
     };
@@ -69,7 +73,8 @@ function getOutputConf(distDir, publicPath) {
 
 function getResolve(resolveObj, srcDir, clientNodeModules) {
     const resolveRes = Object.assign({}, {
-        modules: [path.resolve(__dirname, '../../node_modules')],
+        // 优先搜索当前src 目录，其次搜索node modules
+        modules: [srcDir, clientNodeModules],
         alias: {},
         extensions: ['.js', '.json', '.jsx', '.jpg', '.png', '.jpeg', '.webp', '.svg'],
         unsafeCache: true,
@@ -131,7 +136,7 @@ function getModule(options, modules) {
                             // context: path.resolve(__dirname, '../../dist/static/vendor'),
                             context: opts.distVendor,
                             // 根据不同的env 生成不同的文件
-                            name: () => '[name]-[md5:hash:base58:6].[ext]',
+                            name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
                             outputPath: opts.assetDir,
                             // publicPath: opts.publicPath,
                         },
@@ -145,7 +150,7 @@ function getModule(options, modules) {
                     // context: path.resolve(__dirname, '../../dist/static/vendor'),
                     context: opts.distVendor,
                     // 根据不同的env 生成不同的文件
-                    name: () => '[name]-[md5:hash:base58:6].[ext]',
+                    name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
                     // outputPath: path.resolve(opts.assetDir),
                     outputPath: opts.assetDir,
                     // publicPath: opts.publicPath,
@@ -289,6 +294,7 @@ function getPlugin(options, plugins) {
         manifestConfDir: '',
         publicPath: '',
         sassIncludePath: [],
+        isProd: false,
     }, options);
 
     return [
@@ -300,15 +306,15 @@ function getPlugin(options, plugins) {
         }),
         new webpack.DllPlugin({
             path: path.join(opts.manifestConfDir, 'manifest-[name].json'),
-            name: '[name]_[chunkhash]',
+            name: (opts.isProd ? '[name]_[chunkhash]' : '[name]'),
             // context: __dirname,
             context: opts.manifestConfDir,
         }),
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output
             // both options are optional
-            filename: '[name]-[contenthash:6].css',
-            chunkFilename: '[id]-[contenthash:6].css',
+            filename: opts.isProd ? '[name]-[contenthash:6].css' : '[name].css',
+            chunkFilename: opts.isProd ? '[id]-[contenthash:6].css' : '[id].css',
         }),
         new ManifestPlugin({
             writeToFileEmit: true,
@@ -330,7 +336,7 @@ module.exports = {
             isWatch: false,
         }, options);
         const baseConf = getBaseConfig(opts.isProd, options.isWatch);
-        baseConf.output = getOutputConf(opts.distVendor, opts.publicPath);
+        baseConf.output = getOutputConf(opts.isProd, opts.distVendor, opts.publicPath);
         baseConf.entry = getEntry(opts.jsEntrys, opts.cssEntrys);
         baseConf.resolve = getResolve(opts.resolve, opts.srcDir, opts.clientNodeModules);
         baseConf.module = getModule({
@@ -346,6 +352,7 @@ module.exports = {
             distVendor: opts.distVendor,
             manifestConfDir: opts.manifestConfDir,
             publicPath: opts.publicPath,
+            isProd: opts.isProd,
         }, opts.plugins);
         return baseConf;
     },

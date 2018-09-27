@@ -46,7 +46,7 @@ function checkEnv() {
     return true;
 }
 
-function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
+function bundleDll(leekConfInfo, clientInfo, cmdOpts, onEnd) {
     let isProd = false;
     if (cmdOpts.e === 'production' || cmdOpts.env === 'production') {
         isProd = true;
@@ -97,30 +97,20 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts) {
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
     const dllWpConf = dllConf.getConfig(opts);
     process.chdir(leekConfInfo.leekClientDir);
-    util.startLoading('开始进行webpack编译');
-
-    const webpack = require('webpack'); // eslint-disable-line global-require
+    util.startLoading(`${conf.text.bundle.startComplie}dll`);
+    const webpack = wpUtil.requireModule('webpack', leekConfInfo); // eslint-disable-line global-require
     webpack(dllWpConf, (err, stats) => {
         const info = stats.toJson();
-        util.stopLoading('编译结束');
+        util.stopLoading(conf.text.bundle.endComplie);
         print.out(`编译耗时： ${(info.time / 1000)} s`);
-        if (err || stats.hasErrors()) {
-            if (stats.hasErrors()) {
-                print.red('\n###################      webpack error      ####################\n');
-                print.red(info.errors);
-                print.red('\n\n');
-            }
-
-            if (stats.hasWarnings()) {
-                print.yellow('\n###################      webpack warnings      ####################\n');
-                print.yellow(info.warnings);
-                print.yellow('\n\n');
-            }
+        wpUtil.printWebpackError(err, stats, info);
+        if (onEnd) {
+            onEnd();
         }
     });
 }
 
-function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
+function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, onEnd) {
     const moduleInfos = {
         entry: [],
         noEntry: [],
@@ -214,36 +204,52 @@ function bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts) {
     moduleInfos.entry = moduleInfos.entry.concat(widgetInfo.entry);
     moduleInfos.noEntry = moduleInfos.noEntry.concat(widgetInfo.noEntry);
 
-    wpUtil.execBuildPage(moduleInfos, {
-        moduleName,
-        pageName,
-    }, leekConfInfo);
-
     const watchLists = wpUtil.execBuildNoEntryPage(moduleInfos, leekConfInfo);
     wpUtil.watchNoEntryTpl(watchLists, {
         distDir: path.join(distDir, clientInfo.module.viewsDir),
         srcDir: path.join(leekConfInfo.leekClientDir, clientInfo.sourceDir),
     });
+
+    wpUtil.execBuildPage(moduleInfos, {
+        moduleName,
+        pageName,
+    }, leekConfInfo, onEnd);
+}
+
+function bundelSeq(opts, piKeys, pmoduleInfo, leekConfInfo, clientInfo, onEnd) {
+    if (piKeys.length < 1) {
+        onEnd();
+        return;
+    }
+    const moduleName = piKeys.shift();
+    bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, () => {
+        bundelSeq(opts, piKeys, pmoduleInfo, leekConfInfo, clientInfo, onEnd);
+    });
 }
 
 function bundleSource(opts) {
     const leekConfInfo = getLeeekConfigInfo();
-    const clientPkgInfo = getClientConfigInfo(leekConfInfo);
     const clientInfo = Object.assign({}, conf.client, leekConfInfo.leekConfData.client);
     if (opts.m === 'dll' || opts.module === 'dll') {
-        bundleDll(leekConfInfo, clientInfo, opts, clientPkgInfo);
+        bundleDll(leekConfInfo, clientInfo, opts);
         return;
     }
     const pmoduleInfo = wpUtil.getModuleInfos(clientInfo, leekConfInfo);
     const moduleName = opts.m || opts.module;
     if (_.isString(moduleName) && moduleName) {
-        bundleCommon(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts);
+        if (moduleName === 'all') {
+            // 编译全部模块
+            bundleDll(leekConfInfo, clientInfo, opts, () => {
+                const piKeys = Object.keys(pmoduleInfo);
+                bundelSeq(opts, piKeys, pmoduleInfo, leekConfInfo, clientInfo, () => {
+                    print.out(conf.text.bundle.all.endComplie);
+                });
+            });
+        } else {
+            bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts);
+        }
     } else {
-        print.out('没有指定打包的模块');
-    }
-
-    if (moduleName === 'all') {
-        print.out('构建所有的模块');
+        print.out(conf.text.bundle.notFundModule);
     }
 }
 

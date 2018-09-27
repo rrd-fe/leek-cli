@@ -39,6 +39,7 @@ function getBaseConfig(options) {
                     },
                 },
             },
+            namedModules: true,
             minimizer: [
                 new UglifyJsPlugin({
                     cache: true,
@@ -107,9 +108,13 @@ function getModule(options, modules) {
                         cacheDirectory: true,
                         presets: [[require('@babel/preset-env'), { modules: false }], require('@babel/preset-react')], // eslint-disable-line global-require
                         plugins: [
+                            // fixed css module bug
+                            // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
+                            [require('@babel/plugin-transform-modules-commonjs'), { loose: true }], // eslint-disable-line global-require
                             require('babel-plugin-syntax-dynamic-import'), // eslint-disable-line global-require
                             [require('@babel/plugin-proposal-decorators'), { legacy: true }], // eslint-disable-line global-require
                             [require('@babel/plugin-proposal-class-properties'), { loose: true }], // eslint-disable-line global-require
+                            // [require('@babel/plugin-transform-runtime')],
                         ],
                     },
                 },

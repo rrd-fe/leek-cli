@@ -7,21 +7,19 @@
 // const shelljs = require('shelljs');
 
 
-// const util = require('../../utils/util');
+const conf = require('../../config/conf');
 const print = require('../../utils/print');
-// const conf = require('../../config/conf');
+const bundle = require('./bundle');
 
 const Command = require('../../base/Command');
 const Option = require('../../base/Option');
 
-function bundleAllModule() {
+function bundleAllModule(opts) {
+    const options = Object.assign({}, opts);
+    options.module = 'all';
+    print.out(conf.text.bundle.all.startComplie);
     // bundle dll
-
-    // bundle common
-
-    // bundle other module
-
-    print.out('该命令目前暂未实现');
+    bundle.bundleSource(options);
 }
 
 const bundleAll = new Command({
@@ -34,7 +32,7 @@ const bundleAll = new Command({
     },
 });
 
-bundleAll.addHelpSpec('构建全部模块');
+bundleAll.addHelpSpec('构建项目全部模块');
 bundleAll.addHelpExample('   grn bundle all');
 
 bundleAll.addOption('env', new Option({

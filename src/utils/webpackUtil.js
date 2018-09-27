@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const fse = require('fs-extra');
 const chokidar = require('chokidar');
-const webpack = require('webpack');
+// const webpack = require('webpack');
 
 const print = require('./print');
 const conf = require('../config/conf');
@@ -174,8 +174,11 @@ const webpackUtil = {
         return watchFiles;
     },
     // 构建有js入口的页面
-    execBuildPage(webpackConfigs, bundleInfo, leekConfInfo) {
+    execBuildPage(webpackConfigs, bundleInfo, leekConfInfo, onEnd) {
         if (webpackConfigs.entry.length < 1) {
+            if (onEnd) {
+                onEnd();
+            }
             return;
         }
         const config = webpackConfigs.entry.shift();
@@ -188,24 +191,13 @@ const webpackUtil = {
         const finalConfig = configModule.getConfig(config);
         process.chdir(leekConfInfo.leekConfDir);
         util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`);
+        const webpack = this.requireModule('webpack', leekConfInfo);
         webpack(finalConfig, (err, stats) => {
             const info = stats.toJson();
             util.stopLoading('编译结束');
             print.out(`编译耗时： ${(info.time / 1000)} s`);
-            if (err || stats.hasErrors()) {
-                if (stats.hasErrors()) {
-                    print.red('\n###################      webpack error      ####################\n');
-                    print.red(info.errors);
-                    print.red('\n\n');
-                }
-
-                if (stats.hasWarnings()) {
-                    print.yellow('\n###################      webpack warnings      ####################\n');
-                    print.yellow(info.warnings);
-                    print.yellow('\n\n');
-                }
-            }
-            this.execBuildPage(webpackConfigs, bundleInfo, leekConfInfo);
+            this.printWebpackError(err, stats, info);
+            this.execBuildPage(webpackConfigs, bundleInfo, leekConfInfo, onEnd);
         });
     },
     getCustomConfigModule(clientInfo, moduleName) {
@@ -380,6 +372,34 @@ const webpackUtil = {
                         print.red('watch error:', err);
                     });
             });
+    },
+    // 优先从项目中加载模块，如果没有找到模块，从cli node_modules中加载模块
+    requireModule(moduleName, leekConfInfo) {
+        if (!module) {
+            return null;
+        }
+        try {
+            // project module
+            const clientModule = path.join(leekConfInfo.leekClientDir, './node_modules');
+            return require(path.join(clientModule, // eslint-disable-line global-require
+                moduleName));
+        } catch (err) {
+            return require(moduleName); // eslint-disable-line global-require
+        }
+    },
+    printWebpackError(err, stats, info) {
+        if (err || stats.hasErrors()) {
+            if (stats.hasErrors()) {
+                print.red('\n###################      webpack error      ####################\n');
+                print.red(info.errors);
+                print.red('\n\n');
+            }
+            if (stats.hasWarnings()) {
+                print.yellow('\n###################      webpack warnings      ####################\n');
+                print.yellow(info.warnings);
+                print.yellow('\n\n');
+            }
+        }
     },
 };
 

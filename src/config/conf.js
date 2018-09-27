@@ -44,6 +44,15 @@ const text = {
         confExists: '配置文件已经被创建了',
         confFailed: '配置文件生成失败',
     },
+    bundle: {
+        all: {
+            startComplie: '开始编译项目所有模块',
+            endComplie: '项目所有模块完成',
+        },
+        notFundModule: '没有指定打包的模块',
+        startComplie: '开始编译 模块: ',
+        endComplie: '模块编译完成',
+    },
 };
 
 const logo = {
