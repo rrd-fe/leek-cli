@@ -74,7 +74,7 @@ const webpackUtil = {
                 res.hasCss = true;
                 res.css = path.join(pagePath, v);
             }
-            if (/\.js|\.jsx|\.vue$/.test(v)) {
+            if (/\.js|\.jsx|\.vue|\.ts|\.tsx$/.test(v)) {
                 res.hasJS = true;
                 res.js = path.join(pagePath, v);
             }
