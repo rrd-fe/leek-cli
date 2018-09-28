@@ -161,7 +161,7 @@ root 命令
 improt 'e/b.css';
 ```
 相关链接：
-https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27 好像直接引用单个css文件没问题，这个需要重新确认
+https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
 
 目前已知的解决方法：
 1. 添加sass文件 使用 sass文件引用
