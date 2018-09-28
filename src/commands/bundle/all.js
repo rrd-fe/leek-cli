@@ -41,4 +41,11 @@ bundleAll.addOption('env', new Option({
     description: '设置当前运行的环境',
 }));
 
+bundleAll.addOption('noLoading', new Option({
+    name: 'noLoading',
+    command: '-n, --noLoading',
+    description: '不显示loding',
+}));
+
+
 module.exports = bundleAll;

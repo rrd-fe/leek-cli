@@ -283,7 +283,11 @@ function getYarnVersion() {
     return shelljs.exec('yarn --version', { silent: true });
 }
 
-function startLoading(info) {
+function startLoading(info, isStatic) {
+    if (isStatic) {
+        print.out(`${info} --> ... <--`);
+        return;
+    }
     if (gloSpinner) {
         gloSpinner.start();
         return;
@@ -293,7 +297,10 @@ function startLoading(info) {
     gloSpinner.start();
 }
 
-function stopLoading(info) {
+function stopLoading(info, isStatic) {
+    if (isStatic) {
+        return;
+    }
     if (gloSpinner) {
         gloSpinner.stop();
         gloSpinner = null;

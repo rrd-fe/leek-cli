@@ -60,6 +60,12 @@ bundleCmd.addOption('inlineCss', new Option({
     description: 'css样式是否打包为内联形式',
 }));
 
+bundleCmd.addOption('noLoading', new Option({
+    name: 'noLoading',
+    command: '-n, --noLoading',
+    description: '不显示loding',
+}));
+
 bundleCmd.addSubCmd(allCmd);
 
 module.exports = bundleCmd;

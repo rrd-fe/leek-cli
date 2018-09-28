@@ -56,6 +56,10 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, onEnd) {
     if (cmdOpts.w || cmdOpts.watch) {
         isWatch = true;
     }
+    let noLoading = false;
+    if (cmdOpts.n || cmdOpts.noLoading) {
+        noLoading = true;
+    }
 
     const distDir = path.join(leekConfInfo.leekConfPath, leekConfInfo.leekConfData.dist);
     let jsEntrys = [];
@@ -97,11 +101,11 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, onEnd) {
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
     const dllWpConf = dllConf.getConfig(opts);
     process.chdir(leekConfInfo.leekClientDir);
-    util.startLoading(`${conf.text.bundle.startComplie}dll`);
+    util.startLoading(`${conf.text.bundle.startComplie}dll`, noLoading);
     const webpack = wpUtil.requireModule('webpack', leekConfInfo); // eslint-disable-line global-require
     webpack(dllWpConf, (err, stats) => {
         const info = stats.toJson();
-        util.stopLoading(conf.text.bundle.endComplie);
+        util.stopLoading(conf.text.bundle.endComplie, noLoading);
         print.out(`编译耗时： ${(info.time / 1000)} s`);
         wpUtil.printWebpackError(err, stats, info);
         if (onEnd) {
@@ -125,6 +129,7 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
     let isWatch = false;
     let isProd = false;
     let inlineCss = false;
+    let noLoading = false;
     if (opts.w || opts.watch) {
         isWatch = true;
     }
@@ -135,6 +140,10 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
 
     if (opts.i || opts.inlineCss) {
         inlineCss = true;
+    }
+
+    if (opts.n || opts.noLoading) {
+        noLoading = true;
     }
 
     const publicPath = path.join(leekConfInfo.leekConfData.prefix,
@@ -213,6 +222,7 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
     wpUtil.execBuildPage(moduleInfos, {
         moduleName,
         pageName,
+        noLoading,
     }, leekConfInfo, onEnd);
 }
 

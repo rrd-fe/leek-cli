@@ -190,11 +190,11 @@ const webpackUtil = {
         }
         const finalConfig = configModule.getConfig(config);
         process.chdir(leekConfInfo.leekConfDir);
-        util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`);
+        util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`, bundleInfo.noLoading);
         const webpack = this.requireModule('webpack', leekConfInfo);
         webpack(finalConfig, (err, stats) => {
             const info = stats.toJson();
-            util.stopLoading('编译结束');
+            util.stopLoading('编译结束', bundleInfo.noLoading);
             print.out(`编译耗时： ${(info.time / 1000)} s`);
             this.printWebpackError(err, stats, info);
             this.execBuildPage(webpackConfigs, bundleInfo, leekConfInfo, onEnd);

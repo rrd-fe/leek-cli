@@ -80,7 +80,7 @@ webpack配置文件命名：webpack.config.[模块名].[页面名].js
 
 使用    
 npm install -g leek-cli    
-yarn install -g leek-clig
+yarn global add leek-cli    
 
 ## 使用
 
@@ -153,19 +153,31 @@ root 命令
 ## 需要优化的内容
 1. webpack 多个实例chuunk id优化
 2. webpack 增加并行编译
+3. 优化typescript 编译
 
 ## 已知问题
 1. 使用nvm 安装首次 **有可能**  需要关闭 shell 重新打开
-2. 在js直接引用css文件使用 
+
+## 注意事项
+1. 在js直接引用node_modules 下的css文件使用 
 ```
 improt 'e/b.css';
 ```
-相关链接：
-https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
+可能在production模式下面引入失败，需要查看一下模块是否是es模块如果是的话，    
+可能会有sideEffects 配置       
 
-目前已知的解决方法：
+
+参考：
+https://stackoverflow.com/questions/49160752/what-does-webpack-4-expect-from-a-package-with-sideeffects-false      
+  
+https://segmentfault.com/a/1190000015689240      
+
+
+解决方法：
 1. 添加sass文件 使用 sass文件引用
 2. 使用require();
-3. 添加babel插件支持 css导入(正在调研该方法)
+
+
+
 
 
