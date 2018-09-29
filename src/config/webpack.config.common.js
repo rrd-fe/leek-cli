@@ -42,7 +42,6 @@ function getBaseConfig(options) {
                     },
                 },
             },
-            namedModules: true, // fixed: 命名冲突bug
             minimizer: [
                 new UglifyJsPlugin({
                     cache: true,
@@ -197,10 +196,11 @@ function formatPlugin(options, plugins) {
     ];
 }
 
-function getOutput(isProd, pageDist, publicPath) {
+function getOutput(isProd, jsonpFn, pageDist, publicPath) {
     return {
         path: pageDist, // 打包后的文件存放的地方
         filename: isProd ? '[id]-[chunkhash:6].js' : '[id].js', // 打包后输出文件的文件名
+        jsonpFunction: jsonpFn,
         publicPath,
     };
 }
@@ -448,7 +448,7 @@ module.exports = {
             baseConfig.entry = null;
         }
 
-        baseConfig.output = getOutput(prod, params.outputDist, publicPath);
+        baseConfig.output = getOutput(prod, params.jsonpFn, params.outputDist, publicPath);
 
         const resolveFinal = getResolve({
             srcDir: params.srcDir,

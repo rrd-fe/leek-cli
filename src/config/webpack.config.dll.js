@@ -39,7 +39,6 @@ function getBaseConfig(isProd, isWatch) {
                     },
                 },
             },
-            namedModules: true, // fixed: 命名冲突bug
             minimizer: [
                 new UglifyJsPlugin({
                     cache: true,
@@ -57,7 +56,7 @@ function getBaseConfig(isProd, isWatch) {
     };
 }
 
-function getOutputConf(isProd, distDir, publicPath) {
+function getOutputConf(isProd, jsonpFn, distDir, publicPath) {
     if (!distDir) {
         return null;
     }
@@ -67,6 +66,7 @@ function getOutputConf(isProd, distDir, publicPath) {
         filename: isProd ? '[name]_[chunkhash].dll.js' : '[name].dll.js',
         library: isProd ? '[name]_[chunkhash]' : '[name]',
         devtoolNamespace: 'dll_bundle',
+        jsonpFunction: jsonpFn,
         publicPath,
     };
 }
@@ -342,7 +342,8 @@ module.exports = {
             isWatch: false,
         }, options);
         const baseConf = getBaseConfig(opts.isProd, options.isWatch);
-        baseConf.output = getOutputConf(opts.isProd, opts.distVendor, opts.publicPath);
+        baseConf.output = getOutputConf(opts.isProd, opts.jsonpFn,
+            opts.distVendor, opts.publicPath);
         baseConf.entry = getEntry(opts.jsEntrys, opts.cssEntrys);
         baseConf.resolve = getResolve(opts.resolve, opts.srcDir, opts.clientNodeModules);
         baseConf.module = getModule({

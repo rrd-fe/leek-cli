@@ -10,6 +10,7 @@
 const path = require('path');
 const os = require('os');
 const fs = require('graceful-fs');
+const crypto = require('crypto');
 const pad = require('pad');
 const shelljs = require('shelljs');
 const { Spinner } = require('cli-spinner');
@@ -322,6 +323,18 @@ function hasLeekConf(lcPath) {
     return isFinded;
 }
 
+function hashStr(str, len) {
+    if (!str) {
+        return null;
+    }
+    const leng = (len > 0) ? len : 6;
+    const sha256 = crypto.createHash('sha256');
+    sha256.update(str);
+    const hv = sha256.digest('hex');
+    console.log('crypto:', str, hv);
+    return hv.substr(0, leng);
+}
+
 // 由于当前运行的目录比较模糊，不知道在哪里但是一定，需要在package.json根目录下
 // 当前的package.json下又没有发现.leek.config.js 所有需要向上搜索一级，向下搜索一级
 // 如果没找到则说明当前项目不是leek项目，如果找到了再走后续流程
@@ -460,4 +473,5 @@ module.exports = {
     getYarnVersion,
     startLoading,
     stopLoading,
+    hashStr,
 };

@@ -188,6 +188,8 @@ const webpackUtil = {
             print.out(`没有找到对应的配置文件: 模块名 ${config.moduleName} 页面名 ${config.pageName}`);
             return;
         }
+        config.jsonpFn = this.getJsonpName(bundleInfo.moduleName, config.pageName);
+        console.log('config.jsonpFn:', config.jsonpFn, bundleInfo.moduleName, config.pageName);
         const finalConfig = configModule.getConfig(config);
         process.chdir(leekConfInfo.leekConfDir);
         util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`, bundleInfo.noLoading);
@@ -400,6 +402,13 @@ const webpackUtil = {
                 print.yellow('\n\n');
             }
         }
+    },
+    getJsonpName(moduleName, pageName) {
+        const mn = moduleName || '';
+        const pn = pageName || '';
+        const funName = `${mn}-${pn}`;
+        console.log(`webpackJsonp_${util.hashStr(funName)}`);
+        return `webpackJsonp_${util.hashStr(funName)}`;
     },
 };
 
