@@ -49,7 +49,13 @@ function getBaseConfig(options) {
                     parallel: true,
                     sourceMap: !opts.isProd, // set to true if you want JS source maps
                 }),
-                new OptimizeCSSAssetsPlugin({}),
+                new OptimizeCSSAssetsPlugin({
+                    cssProcessorOptions: {
+                        normalizeUrl: {
+                            stripWWW: false,
+                        },
+                    },
+                }),
             ],
         },
         resolve: {},

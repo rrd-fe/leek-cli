@@ -46,7 +46,13 @@ function getBaseConfig(isProd, isWatch) {
                     parallel: true,
                     sourceMap: !isProd,
                 }),
-                new OptimizeCSSAssetsPlugin({}),
+                new OptimizeCSSAssetsPlugin({
+                    cssProcessorOptions: {
+                        normalizeUrl: {
+                            stripWWW: false,
+                        },
+                    },
+                }),
             ],
         },
         resolveLoader: {
