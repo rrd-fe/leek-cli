@@ -189,7 +189,6 @@ const webpackUtil = {
             return;
         }
         config.jsonpFn = this.getJsonpName(bundleInfo.moduleName, config.pageName);
-        console.log('config.jsonpFn:', config.jsonpFn, bundleInfo.moduleName, config.pageName);
         const finalConfig = configModule.getConfig(config);
         process.chdir(leekConfInfo.leekConfDir);
         util.startLoading(`开始编译 模块: ${config.moduleName} 页面: ${config.pageName}`, bundleInfo.noLoading);
@@ -407,7 +406,6 @@ const webpackUtil = {
         const mn = moduleName || '';
         const pn = pageName || '';
         const funName = `${mn}-${pn}`;
-        console.log(`webpackJsonp_${util.hashStr(funName)}`);
         return `webpackJsonp_${util.hashStr(funName)}`;
     },
 };

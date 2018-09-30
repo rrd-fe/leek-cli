@@ -331,7 +331,6 @@ function hashStr(str, len) {
     const sha256 = crypto.createHash('sha256');
     sha256.update(str);
     const hv = sha256.digest('hex');
-    console.log('crypto:', str, hv);
     return hv.substr(0, leng);
 }
 
