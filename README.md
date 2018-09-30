@@ -178,6 +178,19 @@ https://segmentfault.com/a/1190000015689240
 2. 使用require();
 
 
+2. 关于Autoprefixer css前缀问题，需要在package.json 添加指定的browserslist
+
+例如：
+```
+"browserslist": [
+    "last 1 version",
+    "> 1%",
+    "maintained node versions",
+    "not dead"
+  ]
+```
+
+
 
 
 
