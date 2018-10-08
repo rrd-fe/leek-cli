@@ -97,6 +97,7 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, onEnd) {
         plugins: clientInfo.dll.plugins,
         assetDir: clientInfo.assetsDir,
         jsonpFn: wpUtil.getJsonpName('dll'),
+        fullCusConf: clientInfo.dll,
     };
 
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');

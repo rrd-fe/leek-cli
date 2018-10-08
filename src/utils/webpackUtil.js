@@ -209,11 +209,7 @@ const webpackUtil = {
         } else {
             realModuleName = moduleName;
         }
-        res = {
-            plugins: clientInfo[realModuleName].plugins,
-            module: clientInfo[realModuleName].module,
-            resolve: clientInfo[realModuleName].resolve,
-        };
+        res = Object.assign({}, clientInfo[realModuleName]);
         return res;
     },
     findTpl(leekConf, options, clientInfo) {
@@ -289,6 +285,7 @@ const webpackUtil = {
             finalConfig.modules = cuCnfInfo.module;
             finalConfig.resolve = cuCnfInfo.resolve;
             finalConfig.plugins = cuCnfInfo.plugins;
+            finalConfig.fullCusConf = cuCnfInfo;
             if (jsEntryName) {
                 finalConfig.jsEntryName = jsEntryName;
             }

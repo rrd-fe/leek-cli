@@ -11,6 +11,7 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackIncludeAssetsPlugin = require('rrd-html-webpack-include-assets-plugin');
 const HtmlWebpackPlaceHolderPlugin = require('html-webpack-place-holder-plugin');
+const merge = require('webpack-merge');
 
 function getBaseConfig(options) {
     if (!options) {
@@ -211,6 +212,40 @@ function getOutput(isProd, jsonpFn, pageDist, publicPath) {
     };
 }
 
+
+function getMergeOptions(fullCusConf) {
+    return fullCusConf && fullCusConf.merge;
+}
+
+// 对指定的rule 进行合并
+function rulesReplace(origin, dist) {
+    const resRules = [];
+    if (!origin.rules || !dist.rules) {
+        return resRules;
+    }
+    origin.rules.forEach((v) => {
+        if (!v) {
+            return;
+        }
+        const dv = dist.rules.find((v1) => {
+            if (v1 && v1.test && v && v.test) {
+                if (v1.test.toString() === v.test.toString()) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        if (dv) {
+            resRules.push(Object.assign({}, v, dv));
+        } else {
+            resRules.push(v);
+        }
+    });
+    const res = Object.assign({}, origin, dist);
+    res.rules = resRules;
+    return res;
+}
+
 function getModule(options, modules) {
     if (!options) {
         return null;
@@ -223,195 +258,208 @@ function getModule(options, modules) {
         pageDir: '',
     }, options);
 
-    let resModule = {
-        rules: [],
-    };
-    resModule = Object.assign({}, resModule, modules && {});
+    const mergeOpt = getMergeOptions(opts.fullCusConf);
 
-    const genRules = [
-        // All files with a '.ts' or '.tsx' extension
-        // will be handled by 'awesome-typescript-loader'.
-        {
-            test: /\.tsx?$/,
-            loader: 'awesome-typescript-loader',
-        },
-        // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-        {
-            test: /\.js$/,
-            loader: 'source-map-loader',
-            enforce: 'pre',
-        },
-        {
-            test: /\.(js|jsx)$/,
-            exclude: /(node_modules|bower_components)/,
-            use: {
-                loader: 'babel-loader',
+    let resModule = {
+        rules: [
+            // All files with a '.ts' or '.tsx' extension
+            // will be handled by 'awesome-typescript-loader'.
+            {
+                test: /\.tsx?$/,
+                loader: 'awesome-typescript-loader',
+            },
+            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+            {
+                test: /\.js$/,
+                loader: 'source-map-loader',
+                enforce: 'pre',
+            },
+            {
+                test: /\.(js|jsx)$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        cacheDirectory: true,
+                        presets: [[require('@babel/preset-env'), { modules: false }], require('@babel/preset-react')], // eslint-disable-line global-require
+                        plugins: [
+                            // fixed css module bug
+                            // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
+                            // require('@babel/plugin-transform-modules-commonjs'),
+                            // eslint-disable-line global-require
+                            require('babel-plugin-syntax-dynamic-import'), // eslint-disable-line global-require
+                            [require('@babel/plugin-proposal-decorators'), { legacy: true }], // eslint-disable-line global-require
+                            [require('@babel/plugin-proposal-class-properties'), { loose: true }], // eslint-disable-line global-require
+                        ],
+                    },
+                },
+            },
+            {
+                test: /[^_]\.css$/,
+                use: [
+                    // prod ? MiniCssExtractPlugin.loader : 'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            modules: false,
+                            camelCase: true,
+                            minimize: opts.isProd,
+                            localIdentName: '[name]__[local]--[hash:base64:5]',
+                        },
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
+                        },
+                    },
+                ],
+            },
+            {
+                test: /[^_](\.sass|\.scss)$/,
+                use: [
+                    // prod ? MiniCssExtractPlugin.loader : 'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            modules: false,
+                            camelCase: true,
+                            minimize: opts.isProd,
+                            localIdentName: '[name]__[local]--[hash:base64:5]',
+                        },
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            sourceMap: !opts.isProd,
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
+                        },
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            includePaths: opts.sassIncludePath,
+                        },
+                    },
+                ],
+            },
+            {
+                test: /_\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'style-loader/url',
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            modules: true,
+                            camelCase: true,
+                        },
+                    },
+                ],
+            },
+            {
+                test: /(_\.sass)|(_\.scss)$/,
+                use: [
+                    // prod ? MiniCssExtractPlugin.loader : 'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            modules: true,
+                            camelCase: true,
+                            minimize: opts.isProd,
+                            localIdentName: '[name]__[local]--[hash:base64:5]',
+                        },
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            sourceMap: !opts.isProd,
+                            plugins: () => [
+                                // require('postcss-import')({ root: loader.resourcePath }),
+                                // require('postcss-cssnext')(),
+                                require('autoprefixer')(), // eslint-disable-line global-require
+                                // require('cssnano')()
+                            ],
+                        },
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sourceMap: !opts.isProd,
+                            includePaths: opts.sassIncludePath,
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.(png|jpg|gif|webp)$/,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 8192,
+                            // context: path.resolve(__dirname, '../../../../'),
+                            context: opts.pageDir,
+                            // 根据不同的env 生成不同的文件
+                            name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
+                            // publicPath: '../../../',
+                            // outputPath: './assets/',
+                            outputPath: opts.assetDir,
+                            // publicPath: opts.publicPath,
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.(svg|eot|ttf|ico|woff|woff2)$/,
+                loader: 'file-loader',
                 options: {
-                    cacheDirectory: true,
-                    presets: [[require('@babel/preset-env'), { modules: false }], require('@babel/preset-react')], // eslint-disable-line global-require
-                    plugins: [
-                        // fixed css module bug
-                        // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/27
-                        // require('@babel/plugin-transform-modules-commonjs'),
-                        // eslint-disable-line global-require
-                        require('babel-plugin-syntax-dynamic-import'), // eslint-disable-line global-require
-                        [require('@babel/plugin-proposal-decorators'), { legacy: true }], // eslint-disable-line global-require
-                        [require('@babel/plugin-proposal-class-properties'), { loose: true }], // eslint-disable-line global-require
-                    ],
+                    // context: path.resolve(__dirname, '../../../../'), // static/
+                    context: opts.pageDir,
+                    name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
+                    outputPath: opts.assetDir,
                 },
             },
-        },
-        {
-            test: /[^_]\.css$/,
-            use: [
-                // prod ? MiniCssExtractPlugin.loader : 'style-loader',
-                MiniCssExtractPlugin.loader,
-                {
-                    loader: 'css-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        modules: false,
-                        camelCase: true,
-                        minimize: opts.isProd,
-                        localIdentName: '[name]__[local]--[hash:base64:5]',
-                    },
-                },
-                {
-                    loader: 'postcss-loader',
-                    options: {
-                        ident: 'postcss',
-                        plugins: () => [
-                            // require('postcss-import')({ root: loader.resourcePath }),
-                            // require('postcss-cssnext')(),
-                            require('autoprefixer')(), // eslint-disable-line global-require
-                            // require('cssnano')()
-                        ],
-                    },
-                },
-            ],
-        },
-        {
-            test: /[^_](\.sass|\.scss)$/,
-            use: [
-                // prod ? MiniCssExtractPlugin.loader : 'style-loader',
-                MiniCssExtractPlugin.loader,
-                {
-                    loader: 'css-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        modules: false,
-                        camelCase: true,
-                        minimize: opts.isProd,
-                        localIdentName: '[name]__[local]--[hash:base64:5]',
-                    },
-                },
-                {
-                    loader: 'postcss-loader',
-                    options: {
-                        ident: 'postcss',
-                        sourceMap: !opts.isProd,
-                        plugins: () => [
-                            // require('postcss-import')({ root: loader.resourcePath }),
-                            // require('postcss-cssnext')(),
-                            require('autoprefixer')(), // eslint-disable-line global-require
-                            // require('cssnano')()
-                        ],
-                    },
-                },
-                {
-                    loader: 'sass-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        includePaths: opts.sassIncludePath,
-                    },
-                },
-            ],
-        },
-        {
-            test: /_\.css$/,
-            use: [
-                MiniCssExtractPlugin.loader,
-                {
-                    loader: 'style-loader/url',
-                },
-                {
-                    loader: 'css-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        modules: true,
-                        camelCase: true,
-                    },
-                },
-            ],
-        },
-        {
-            test: /(_\.sass)|(_\.scss)$/,
-            use: [
-                // prod ? MiniCssExtractPlugin.loader : 'style-loader',
-                MiniCssExtractPlugin.loader,
-                {
-                    loader: 'css-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        modules: true,
-                        camelCase: true,
-                        minimize: opts.isProd,
-                        localIdentName: '[name]__[local]--[hash:base64:5]',
-                    },
-                },
-                {
-                    loader: 'postcss-loader',
-                    options: {
-                        ident: 'postcss',
-                        sourceMap: !opts.isProd,
-                        plugins: () => [
-                            // require('postcss-import')({ root: loader.resourcePath }),
-                            // require('postcss-cssnext')(),
-                            require('autoprefixer')(), // eslint-disable-line global-require
-                            // require('cssnano')()
-                        ],
-                    },
-                },
-                {
-                    loader: 'sass-loader',
-                    options: {
-                        sourceMap: !opts.isProd,
-                        includePaths: opts.sassIncludePath,
-                    },
-                },
-            ],
-        },
-        {
-            test: /\.(png|jpg|gif|webp)$/,
-            use: [
-                {
-                    loader: 'url-loader',
-                    options: {
-                        limit: 8192,
-                        // context: path.resolve(__dirname, '../../../../'),
-                        context: opts.pageDir,
-                        // 根据不同的env 生成不同的文件
-                        name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
-                        // publicPath: '../../../',
-                        // outputPath: './assets/',
-                        outputPath: opts.assetDir,
-                        // publicPath: opts.publicPath,
-                    },
-                },
-            ],
-        },
-        {
-            test: /\.(svg|eot|ttf|ico|woff|woff2)$/,
-            loader: 'file-loader',
-            options: {
-                // context: path.resolve(__dirname, '../../../../'), // static/
-                context: opts.pageDir,
-                name: () => (opts.isProd ? '[name]-[md5:hash:base58:6].[ext]' : '[name].[ext]'),
-                outputPath: opts.assetDir,
-            },
-        },
-    ];
-    resModule.rules = resModule.rules.concat(genRules);
+        ],
+    };
+
+    let mergeFn = null;
+    if (!mergeOpt || !mergeOpt.module) {
+        mergeFn = merge;
+    } else {
+        const { method } = mergeOpt.module;
+        if (method && merge[method]) {
+            mergeFn = merge[method](mergeOpt.module.options);
+        } else if (method === 'rulesReplace') {
+            mergeFn = rulesReplace;
+        } else {
+            mergeFn = merge;
+        }
+    }
+    resModule = mergeFn(resModule, modules);
     return resModule;
 }
 
