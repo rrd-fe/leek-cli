@@ -284,7 +284,25 @@ https://segmentfault.com/a/1190000015689240
 解决方法：
 1. 使用require， 例如： const s = require('*.scss');
 2. 添加typescript 声明文件 *.scss.d.ts
-3. 默认忽略 参考上面
+3. 默认忽略 添加
+```
+declare module '*.css' {
+    interface IClassNames {
+      [className: string]: string
+    }
+    const classNames: IClassNames;
+    export = classNames;
+}
+
+declare module '*.scss' {
+    interface IClassNames {
+        [className: string]: string
+    }
+    const classNames: IClassNames;
+    export = classNames;
+}
+```
+4. 预编译（相对安全的方案后续支持）
 
 
 
