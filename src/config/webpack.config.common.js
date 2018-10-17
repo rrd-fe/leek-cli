@@ -256,6 +256,8 @@ function getModule(options, modules) {
         sassIncludePath: [],
         isProd: false,
         pageDir: '',
+        cssModulesTypings: false,
+        fullCusConf: {},
     }, options);
 
     const mergeOpt = getMergeOptions(opts.fullCusConf);
@@ -368,7 +370,7 @@ function getModule(options, modules) {
                         loader: 'style-loader/url',
                     },
                     {
-                        loader: 'css-loader',
+                        loader: opts.cssModulesTypings ? 'typings-for-css-modules-loader' : 'css-loader',
                         options: {
                             sourceMap: !opts.isProd,
                             modules: true,
@@ -383,7 +385,7 @@ function getModule(options, modules) {
                     // prod ? MiniCssExtractPlugin.loader : 'style-loader',
                     MiniCssExtractPlugin.loader,
                     {
-                        loader: 'css-loader',
+                        loader: opts.cssModulesTypings ? 'typings-for-css-modules-loader' : 'css-loader',
                         options: {
                             sourceMap: !opts.isProd,
                             modules: true,
@@ -521,6 +523,8 @@ module.exports = {
             isProd: prod,
             pageDir: params.outputDist,
             srcDir: params.srcDir,
+            fullCusConf: params.fullCusConf,
+            cssModulesTypings: params.cssModulesTypings,
         }, params.modules);
 
         baseConfig.plugins = formatPlugin({
@@ -533,7 +537,7 @@ module.exports = {
             distDir: params.distDir,
             publicPath: params.publicPath,
             commonJSName: params.commonJSName,
-            commonCssName: params.commonJSName,
+            commonCssName: params.commonCssName,
             manifestDir: params.manifestDir,
             template: params.template,
             isProd: prod,

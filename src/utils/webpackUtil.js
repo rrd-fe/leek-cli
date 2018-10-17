@@ -236,8 +236,8 @@ const webpackUtil = {
             manifestDir: '',
             commonJSName: '',
             commonCssName: '',
+            cssModulesTypings: false,
         }, options);
-
         this.findPage(opts.finalPath, (res) => {
             let jsEntryName = '';
             let jsPath = '';
@@ -280,6 +280,7 @@ const webpackUtil = {
                 commonCssName: opts.commonCssName,
                 manifestDir: opts.manifestDir,
                 template: clientInfo[opts.moduleName === 'common' ? 'common' : 'base'].template,
+                cssModulesTypings: opts.cssModulesTypings,
             };
             const cuCnfInfo = this.getCustomConfigModule(clientInfo, opts.moduleName);
             finalConfig.modules = cuCnfInfo.module;

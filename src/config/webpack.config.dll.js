@@ -26,12 +26,12 @@ function getBaseConfig(isProd, isWatch) {
                     //     name:  '../../../../vendor/commonlib',
                     //     chunks: 'all',
                     // },
-                    styles: {
-                        test: /\.css|\.sass|.scss$/,
-                        name: 'style',
-                        chunks: 'all',
-                        enforce: true,
-                    },
+                    // styles: {
+                    //     test: /\.css|\.sass|.scss$/,
+                    //     name: 'style',
+                    //     chunks: 'all',
+                    //     enforce: true,
+                    // },
                 },
             },
             minimizer: [
@@ -104,7 +104,6 @@ function getEntry(jsEntrys, cssEntrys) {
     } else {
         cssEntry.push(cssEntrys);
     }
-
     return {
         commonDll: jsEntry,
         commonCss: cssEntry,
@@ -159,6 +158,7 @@ function getModule(options, modules) {
         sassIncludePath: [],
         isProd: false,
         fullCusConf: {},
+        cssModulesTypeings: false,
     }, options);
 
     const mergeOpt = getMergeOptions(opts.fullCusConf);
@@ -270,7 +270,7 @@ function getModule(options, modules) {
                         loader: 'style-loader/url',
                     },
                     {
-                        loader: 'css-loader',
+                        loader: opts.cssModulesTypeings ? 'typings-for-css-modules-loader' : 'css-loader',
                         options: {
                             sourceMap: !opts.isProd,
                             modules: true,
@@ -285,7 +285,7 @@ function getModule(options, modules) {
                     // prod ? MiniCssExtractPlugin.loader : 'style-loader',
                     MiniCssExtractPlugin.loader,
                     {
-                        loader: 'css-loader',
+                        loader: opts.cssModulesTypeings ? 'typings-for-css-modules-loader' : 'css-loader',
                         options: {
                             sourceMap: !opts.isProd,
                             modules: true,
@@ -401,6 +401,7 @@ module.exports = {
             sassIncludePath: opts.sassIncludePath,
             isProd: opts.isProd,
             fullCusConf: opts.fullCusConf,
+            cssModulesTypeings: opts.cssModulesTypeings,
         }, opts.module);
 
         baseConf.plugins = getPlugin({

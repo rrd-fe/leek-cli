@@ -98,6 +98,7 @@ function bundleDll(leekConfInfo, clientInfo, cmdOpts, onEnd) {
         assetDir: clientInfo.assetsDir,
         jsonpFn: wpUtil.getJsonpName('dll'),
         fullCusConf: clientInfo.dll,
+        cssModulesTypeings: clientInfo.cssModulesTypeings,
     };
 
     const dllConf = wpUtil.getWebpackConfInfo(leekConfInfo, 'dll');
@@ -152,7 +153,6 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
         leekConfInfo.leekConfData.publicPath);
 
     const distDir = path.join(leekConfInfo.leekConfPath, leekConfInfo.leekConfData.dist);
-
     let tplInfo = null;
     const pageName = opts.p || opts.page;
     if (_.isString(pageName) && pageName) {
@@ -177,8 +177,9 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
             sassIncludePath: clientInfo.common.sassIncludePaths,
             distDir,
             manifestDir: util.getManifestConfDir(leekConfInfo),
-            commonJSName: 'manifest-commonDll.json',
-            commonCssName: 'manifest-commonCss.json',
+            commonJSName: clientInfo.commonJSName || 'manifest-commonDll.json',
+            commonCssName: clientInfo.commonCSSName || 'manifest-commonCss.json',
+            cssModulesTypings: clientInfo.cssModulesTypings,
         }, clientInfo);
     } else {
         // 获取页面信息
@@ -196,8 +197,9 @@ function bundleModule(moduleName, pmoduleInfo, leekConfInfo, clientInfo, opts, o
             sassIncludePath: clientInfo.common.sassIncludePaths,
             distDir,
             manifestDir: util.getManifestConfDir(leekConfInfo),
-            commonJSName: 'manifest-commonDll.json',
-            commonCssName: 'manifest-commonCss.json',
+            commonJSName: clientInfo.commonJSName || 'manifest-commonDll.json',
+            commonCssName: clientInfo.commonCSSName || 'manifest-commonCss.json',
+            cssModulesTypings: clientInfo.cssModulesTypings,
         }, clientInfo);
     }
     const widgetInfo = wpUtil.findWidet(leekConfInfo, {

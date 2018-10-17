@@ -78,7 +78,8 @@ const client = {
     assetsDir: './assets/',
     webpackConfDirTmp: 'webpack.config.{name}.js',
     commonJSName: 'manifest-commonDll.json',
-    commonCssName: 'manifest-commonCss.json',
+    commonCSSName: 'manifest-commonCss.json',
+    cssModulesTypings: false,
     module: {
         pageDir: 'page/',
         uiDir: 'ui/',
