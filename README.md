@@ -149,6 +149,94 @@ root 命令
 
 另外 对于正常命令会通过命令树 找对对应的指令并且配置响应的参数，会尽量找最深的命令配置，如果没有找到则说明输入有误。
 
+配置例子：
+```
+const path = require('path');
+// const 
+
+module.exports = {
+    "projectType": "react",
+    "prefix": "",
+    "publicPath": "/static/",
+    "dist": "../../dist",
+    "clientAlias": "client",
+    "isInlineCss": "false",
+    "leekConfig": "./.leekConfig/",
+    "leekWebpackConfigDir": "{{leekConfig}}/webpack/",
+    "leekManifsetDir": "{{leekConfig}}/manifest/",
+    "configIn": "client",
+    "client": {
+        "assetsDir": "./assets/",
+        "vendorDir": "vendor/",
+        "sourceDir": "./src",
+        "cssModulesTypings": false, // 配置是否生成 css module declear文件    ***** New *****
+        "dll": {
+            "vendors": [
+                "core-js",
+                "react",
+                "react-dom",
+                "lodash",
+                "axios",
+                "antd",
+                "history",
+                "react-router-dom",
+                "mobx",
+                "mobx-react",
+            ],
+            "css": [
+                path.resolve(__dirname, './src/common/static/css/base.scss'),
+            ],
+            sassIncludePaths: [
+                path.resolve(__dirname, './src/'),
+            ],
+            resolve: {},
+            module: {},
+            plugins: [],
+        },
+        "common": {
+            template: ' ',
+            resolve: {
+            },
+            sassIncludePaths: [
+                path.resolve(__dirname, './src/'),
+            ],
+            module: {},
+            plugins: [],
+        },
+        'base': {
+            template: '',
+            watchOptions: {},
+            resolve: {},
+            sassIncludePaths: [
+                path.resolve(__dirname, './src/'),
+            ],
+            module: {},
+            plugins: [],
+        },
+    },
+    "server": {
+        "relPath": "../../",
+        "contentPath": [
+            "src/#",
+            "package.json"
+        ],
+
+    }
+}
+
+
+
+
+```
+
+## 更新说明
+
+v0.1.4
+
+1. 添加对css和scss typescript声明文件的自动生成的支持 （并不完善）
+2. 修复commonJSName和commonCSSName的配置
+
+
 
 ## 需要优化的内容
 1. webpack 多个实例chuunk id优化
@@ -178,7 +266,7 @@ https://segmentfault.com/a/1190000015689240
 2. 使用require();
 
 
-2. 关于Autoprefixer css前缀问题，需要在package.json 添加指定的browserslist
+3. 关于Autoprefixer css前缀问题，需要在package.json 添加指定的browserslist
 
 例如：
 ```
@@ -190,6 +278,13 @@ https://segmentfault.com/a/1190000015689240
   ]
 ```
 
+
+4. 在typescript 中使用 import * as style from '*.scss' 找不到对应的模块
+
+解决方法：
+1. 使用require， 例如： const s = require('*.scss');
+2. 添加typescript 声明文件 *.scss.d.ts
+3. 默认忽略 参考上面
 
 
 
