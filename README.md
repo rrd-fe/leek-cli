@@ -242,6 +242,9 @@ v0.1.4
 1. webpack 多个实例chuunk id优化
 2. webpack 增加并行编译
 3. 优化typescript 编译
+4. 添加多线程编译
+5. 添加HRM支持
+7. 服务端支持typescript 
 
 ## 已知问题
 1. 使用nvm 安装首次 **有可能**  需要关闭 shell 重新打开
