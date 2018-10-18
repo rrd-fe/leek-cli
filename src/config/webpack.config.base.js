@@ -7,6 +7,8 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlaceHolderPlugin = require('html-webpack-place-holder-plugin');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+
 const merge = require('webpack-merge');
 
 function getBaseConfig(options) {
@@ -143,6 +145,9 @@ function getModule(options, modules) {
             {
                 test: /\.tsx?$/,
                 loader: 'awesome-typescript-loader',
+                options: {
+                    useCache: true,
+                },
             },
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             {
@@ -448,6 +453,7 @@ function formatPlugin(options, plugins) {
         new HtmlWebpackPlaceHolderPlugin({
             content: getTemplate(opts.incss, opts.template),
         }),
+        new HardSourceWebpackPlugin(),
     ];
 }
 
