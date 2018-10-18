@@ -5,6 +5,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const merge = require('webpack-merge');
 
 
@@ -377,6 +378,7 @@ function getPlugin(options, plugins) {
             generate: (seed, files) => files.reduce((manifest, file) => Object.assign({},
                 manifest, { [file.path]: file.name }), seed),
         }),
+        new HardSourceWebpackPlugin(),
     ];
 }
 
