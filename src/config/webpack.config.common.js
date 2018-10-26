@@ -56,6 +56,7 @@ function getBaseConfig(options) {
                         normalizeUrl: {
                             stripWWW: false,
                         },
+                        autoprefixer: { disable: true },
                     },
                 }),
             ],

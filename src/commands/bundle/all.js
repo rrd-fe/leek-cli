@@ -17,6 +17,9 @@ const Option = require('../../base/Option');
 function bundleAllModule(opts) {
     const options = Object.assign({}, opts);
     options.module = 'all';
+    if (bundle.checkEnv() === false) {
+        return;
+    }
     print.out(conf.text.bundle.all.startComplie);
     // bundle dll
     bundle.bundleSource(options);

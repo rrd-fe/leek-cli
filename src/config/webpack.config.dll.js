@@ -46,6 +46,7 @@ function getBaseConfig(isProd, isWatch) {
                         normalizeUrl: {
                             stripWWW: false,
                         },
+                        autoprefixer: { disable: true },
                     },
                 }),
             ],

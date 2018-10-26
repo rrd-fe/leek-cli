@@ -53,6 +53,7 @@ function getBaseConfig(options) {
                         normalizeUrl: {
                             stripWWW: false,
                         },
+                        autoprefixer: { disable: true },
                     },
                 }),
             ],
@@ -161,7 +162,7 @@ function getModule(options, modules) {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        cacheDirectory: true,
+                        cacheDirectory: false,
                         presets: [[require('@babel/preset-env'), { modules: false }], require('@babel/preset-react')], // eslint-disable-line global-require
                         plugins: [
                             // fixed css module bug
