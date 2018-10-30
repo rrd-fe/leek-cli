@@ -239,15 +239,22 @@ v0.1.4
 
 
 ## 需要优化的内容
-1. webpack 多个实例chuunk id优化
+1. webpack 多个实例chuunk id优化 （fixed）
 2. webpack 增加并行编译
 3. 优化typescript 编译
-4. 添加多线程编译
+4. 添加多线程编译 
 5. 添加HRM支持
-7. 服务端支持typescript 
+6. 服务端支持typescript   
+7. 支持版本限制
+8. 支持一键初始化
 
 ## 已知问题
 1. 使用nvm 安装首次 **有可能**  需要关闭 shell 重新打开
+2. 使用yarn global添加的时候 注意配置 环境变量 export PATH="$PATH:$(yarn global bin)" 
+3. 使用taobao npm镜像装 会有一个 包含 `Unexpected end of JSON input while parsing near `的一个error 参考 https://github.com/npm/npm/issues/19072#issuecomment-395788165
+4. leek 默认包含了开发的很多依赖，安装过程中有些依赖是 托管到 aws 的 可能会安装失败，例如node-sass 碰到这种情况建议多装一次试试
+
+
 
 ## 注意事项
 1. 在js直接引用node_modules 下的css文件使用 
