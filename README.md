@@ -18,7 +18,7 @@ dll 包含的依赖包就可以完成配置
     ----dist
     ----doc
     ----client  前端代码
-        ----config     项目使用配置
+        ----config     项目使用配置
         ----doc     项目说明文档
         ----scripts     项目可能用到的脚本
         ----src     项目源代码
@@ -41,8 +41,8 @@ dll 包含的依赖包就可以完成配置
                     ----page1       页面
                         ----assets      页面使用的资源     
                         ----page.tpl    页面模板
-                        ----page.js     页面使用脚本
-                        ----page.scss   页面用到的样式文件
+                        ----page.js     页面使用脚本
+                        ----page.scss   页面用到的样式文件
                     ----page2
                 ----ui
                 ----widget
@@ -60,11 +60,11 @@ dll 包含的依赖包就可以完成配置
 3. 支持对现有配置进行覆盖，需要在配置中完全自定义，如果自定义会覆盖现有的所有配置
 4. 支持在server 目录 和 client 目录下进行运行命令
 
-约束：
+约束：
 
 1. 原则上每个页面下面只能有一个js、jsx、ts、tsx文件， 一个样式文件
 2. 页面用使用到资源需要用过js文件来进行引用
-3. 每个项目只能配置一个 dll配置
+3. 每个项目只能配置一个 dll配置
 4. 每个项目有一个基础的配置，可以对某些指定的模块进行配置
 
 文件说明：
@@ -144,10 +144,10 @@ root 命令
 
 每一个命令都对应一个动作，每个动作可以接受指定的参数 参数通过 -[opt] 或则 --[opt] 传入
 
-通常情况下这样没问题，但是有些特殊的参数对应的是一些命令比如 leek -v 或者 leek -h 并不是root跟命令，而是输入 leek的版本号 或者 打印 leek 版本信息
+通常情况下这样没问题，但是有些特殊的参数对应的是一些命令比如 leek -v 或者 leek -h 并不是root跟命令，而是输入 leek的版本号 或者 打印 leek 版本信息
 
 
-另外 对于正常命令会通过命令树 找对对应的指令并且配置响应的参数，会尽量找最深的命令配置，如果没有找到则说明输入有误。
+另外 对于正常命令会通过命令树 找对对应的指令并且配置响应的参数，会尽量找最深的命令配置，如果没有找到则说明输入有误。
 
 配置例子：
 ```
@@ -251,8 +251,8 @@ v0.1.4
 ## 已知问题
 1. 使用nvm 安装首次 **有可能**  需要关闭 shell 重新打开
 2. 使用yarn global添加的时候 注意配置 环境变量 export PATH="$PATH:$(yarn global bin)" 
-3. 使用taobao npm镜像装 会有一个 包含 `Unexpected end of JSON input while parsing near `的一个error 参考 https://github.com/npm/npm/issues/19072#issuecomment-395788165
-4. leek 默认包含了开发的很多依赖，安装过程中有些依赖是 托管到 aws 的 可能会安装失败，例如node-sass 碰到这种情况建议多装一次试试
+3. 使用taobao npm镜像装 会有一个 包含 `Unexpected end of JSON input while parsing near `的一个error 参考 https://github.com/npm/npm/issues/19072#issuecomment-395788165
+4. leek 默认包含了开发的很多依赖，安装过程中有些依赖是 托管到 aws 的 可能会安装失败，例如node-sass 碰到这种情况建议多装一次试试
 
 
 
