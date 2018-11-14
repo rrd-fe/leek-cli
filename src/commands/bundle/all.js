@@ -36,7 +36,7 @@ const bundleAll = new Command({
 });
 
 bundleAll.addHelpSpec('构建项目全部模块');
-bundleAll.addHelpExample('   grn bundle all');
+bundleAll.addHelpExample('   leek bundle all');
 
 bundleAll.addOption('env', new Option({
     name: 'env',

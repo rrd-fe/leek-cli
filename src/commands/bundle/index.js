@@ -28,7 +28,7 @@ const bundleCmd = new Command({
 });
 
 bundleCmd.addHelpSpec('打包客户端代码');
-bundleCmd.addHelpExample('   grn bundle all');
+bundleCmd.addHelpExample('   leek bundle all');
 
 bundleCmd.addOption('env', new Option({
     name: 'environment',

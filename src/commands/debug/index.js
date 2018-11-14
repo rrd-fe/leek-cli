@@ -32,7 +32,7 @@ const debugApp = new Command({
 });
 
 debugApp.addHelpSpec('调试应用');
-debugApp.addHelpExample('   grn debug -m common');
+debugApp.addHelpExample('   leek debug -m common');
 
 
 module.exports = debugApp;

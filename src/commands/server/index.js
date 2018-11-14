@@ -33,7 +33,7 @@ const buildCmd = new Command({
 });
 
 buildCmd.addHelpSpec('构建服务端代码');
-buildCmd.addHelpExample('   grn server build');
+buildCmd.addHelpExample('   leek server build');
 
 buildCmd.addOption('env', new Option({
     name: 'environment',
@@ -66,7 +66,7 @@ const startServerCmd = new Command({
 });
 
 startServerCmd.addHelpSpec('启动node服务');
-startServerCmd.addHelpExample('   grn server start');
+startServerCmd.addHelpExample('   leek server start');
 
 startServerCmd.addOption('watch', new Option({
     name: 'watch',
@@ -87,7 +87,7 @@ const serverCmd = new Command({
 });
 
 serverCmd.addHelpSpec('后端node服务');
-serverCmd.addHelpExample('   grn server build -e production');
+serverCmd.addHelpExample('   leek server build -e production');
 
 serverCmd.addSubCmd(startServerCmd);
 serverCmd.addSubCmd(buildCmd);
