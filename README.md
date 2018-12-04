@@ -231,6 +231,8 @@ module.exports = {
 
 ## 更新说明
 
+
+
 v0.1.4
 
 1. 添加对css和scss typescript声明文件的自动生成的支持 （并不完善）
@@ -247,6 +249,7 @@ v0.1.4
 6. 服务端支持typescript   
 7. 支持版本限制
 8. 支持一键初始化
+9. font-size中文字符bug
 
 ## 已知问题
 1. 使用nvm 安装首次 **有可能**  需要关闭 shell 重新打开
